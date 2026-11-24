@@ -52,9 +52,9 @@ ai_task               = tutor | buyer | evaluator | embedding
 | sector | text | NULL (lista cerrada se define en 002) |
 | timezone | text | NOT NULL DEFAULT `'America/Lima'`; validada contra `pg_timezone_names`; en orgs `personal` se mantiene igual a `profiles.timezone` del único miembro (vía `update_my_profile`) |
 | status | organization_status | NOT NULL DEFAULT `active` |
-| suspended_reason | text | NULL, ≤ 500; NOT NULL si `status = suspended` (CHECK) |
-| suspended_at | timestamptz | NULL |
-| suspended_by | uuid → auth.users | NULL |
+| suspended_reason | text | NULL, ≤ 500; si `status = suspended`, NOT NULL y no solo espacios (CHECK `status <> 'suspended' OR btrim(coalesce(suspended_reason, '')) <> ''`). Se conserva al reactivar (última suspensión); la UI solo lo muestra si `status = suspended` |
+| suspended_at | timestamptz | NULL; se conserva al reactivar |
+| suspended_by | uuid → auth.users | NULL; se conserva al reactivar |
 | created_at, updated_at | timestamptz | `updated_at` por trigger |
 
 Índices: `slug` (único), `(status)`, `(created_at)`.
@@ -71,7 +71,7 @@ ai_task               = tutor | buyer | evaluator | embedding
 | timezone | text | NOT NULL DEFAULT `'America/Lima'`; CHECK `private.is_valid_timezone(timezone)`. La BD es la autoridad (`pg_timezone_names`); el cliente ofrece las opciones de `Intl.supportedValuesOf('timeZone')` y solo valida formato |
 | onboarding_status | onboarding_status | NOT NULL DEFAULT `pending` |
 | onboarding_step | smallint | NOT NULL DEFAULT 1, CHECK 1–3 |
-| onboarding_updated_at | timestamptz | NULL |
+| onboarding_updated_at | timestamptz | NULL; lo fija el trigger `before update of onboarding_status, onboarding_step` (= `now()` si alguno cambia) |
 | created_at, updated_at | timestamptz | |
 
 El usuario solo puede actualizar directamente `onboarding_status` y `onboarding_step` (GRANT de
@@ -168,19 +168,25 @@ CHECK `daily_limit <= monthly_limit`. `0` = sin simulaciones permitidas.
 | revoked_by | uuid → auth.users | NULL |
 | access_request_id | uuid → access_requests | NULL, UNIQUE |
 | idempotency_key | uuid | NULL, UNIQUE (clave por formulario; idempotencia de creación) |
+| resend_idempotency_key | uuid | NULL, sin UNIQUE (clave del último reenvío aplicado; idempotencia de reenvío por diálogo de confirmación) |
 | created_at, updated_at | timestamptz | |
 
 Reglas: CHECK no aceptada y revocada a la vez. Índice único parcial `(email) WHERE accepted_at IS NULL
 AND revoked_at IS NULL` (una invitación abierta por correo). Índices `(created_at)`, `(expires_at)`.
 
-**Estado derivado** — `public.invitation_status(accepted_at, revoked_at, expires_at)`:
+**Estado derivado** — `public.invitation_status(accepted_at, revoked_at, expires_at)` devuelve un
+identificador en inglés (`pending | accepted | expired | revoked`), el mismo que acepta el filtro
+`p_status` de `admin_list_invitations`; las etiquetas en español son solo de la UI:
 
 ```text
-accepted_at IS NOT NULL      → aceptada
-revoked_at  IS NOT NULL      → revocada
-expires_at <= now()          → vencida
-otherwise                    → pendiente
+accepted_at IS NOT NULL      → accepted  (aceptada)
+revoked_at  IS NOT NULL      → revoked   (revocada)
+expires_at <= now()          → expired   (vencida)
+otherwise                    → pending   (pendiente)
 ```
+
+**Invitación abierta** = `pending` o `expired` (no aceptada ni revocada): es lo que bloquea crear otra
+invitación para el mismo correo (índice único parcial, FR-010).
 
 Transiciones:
 
@@ -204,7 +210,7 @@ Reenviar solo desde `pendiente` o `vencida`; revocar solo desde `pendiente` o `v
 | email | text | NULL solo si anonimizada; normalizado |
 | company_or_role | text | NULL, ≤ 120 |
 | message | text | NULL, ≤ 500 |
-| privacy_document_id | uuid → legal_documents | NOT NULL |
+| privacy_document_id | uuid → legal_documents | NOT NULL; la versión de la política que se mostró al visitante, que debe ser la vigente al enviar (FR-048) |
 | privacy_accepted_at | timestamptz | NOT NULL |
 | status | access_request_status | NOT NULL DEFAULT `new` |
 | invitation_id | uuid → invitations | NULL; NOT NULL si `status = invited` |
@@ -216,7 +222,9 @@ Reenviar solo desde `pendiente` o `vencida`; revocar solo desde `pendiente` o `v
 | created_at, updated_at | timestamptz | |
 
 Reglas: CHECK `anonymized_at IS NULL OR (full_name, email, company_or_role, message) IS NULL`
-(todos nulos). Índice único parcial `(email) WHERE status = 'new' AND anonymized_at IS NULL`.
+(todos nulos). Tras anonimizar solo quedan datos no personales (FR-049a): `status`, fechas,
+`discarded_by_system`, `anonymized_at`, `privacy_document_id`, `invitation_id` y `reviewed_by` (id
+del superadmin revisor, no del solicitante). Índice único parcial `(email) WHERE status = 'new' AND anonymized_at IS NULL`.
 Índices `(status, created_at)`, `(discarded_at) WHERE status = 'discarded' AND anonymized_at IS NULL`.
 
 Transiciones:
@@ -282,7 +290,7 @@ Trigger `BEFORE UPDATE OR DELETE` → excepción. Retención: 24 meses (research
 | `invitation.resent` | invitation | `{ previous_expires_at, expires_at }` | user |
 | `invitation.revoked` | invitation | `{ previous_status }` | user |
 | `invitation.accepted` | invitation | `{ organization_id, user_id }` | user (el invitado) |
-| `superadmin.login` | user | `{ step: 'mfa_verify' }` + `result` | user |
+| `superadmin.login` | user | `{ step: 'mfa_verify' \| 'mfa_enroll' }` + `result` | user |
 | `superadmin.mfa_enrolled` | user | `{}` | user |
 | `superadmin.mfa_reset` | user | `{ sessions_revoked }` | operator |
 | `quota.updated` | quota | `{ before: {daily, monthly}, after: {daily, monthly} }` | user |
@@ -341,17 +349,30 @@ registra solo como dominio (el correo completo está en `invitations`).
 ## Operaciones atómicas clave
 
 - **`accept_invitation`** (solo `service_role`): bloquea la invitación (`FOR UPDATE`), revalida
-  `pendiente` y no vencida, actualiza `profiles.full_name`, crea `organizations` (personal, active,
+  `pendiente` y no vencida, exige que `p_user_id` tenga el mismo correo que la invitación y que sea
+  una cuenta huérfana (sin pertenencias ni fila en `platform_admins`; si no, `P0011` `invalid`),
+  exige que los documentos recibidos (`p_terms_doc`, `p_ai_notice_doc`, los que la persona vio) sean
+  los vigentes de su tipo (si no, `P0011` `legal_outdated`, FR-015), actualiza `profiles.full_name`, crea `organizations` (personal, active,
   `America/Lima`, `name = full_name`, slug único con `private.slugify(full_name)` y sufijo ante
   colisión), `memberships` (`{vendedor}`, active, `invited_at`, `joined_at`),
-  `quotas` (10/100), dos `legal_acceptances`, marca `accepted_at`/`accepted_user_id`, marca la
-  solicitud de origen si existe y escribe `invitation.accepted`. Todo o nada.
+  `quotas` (10/100), dos `legal_acceptances` con esos documentos (`ON CONFLICT DO NOTHING`), marca
+  `accepted_at`/`accepted_user_id`, marca la solicitud de origen si existe y escribe
+  `invitation.accepted`. Todo o nada.
+- **Cuenta huérfana**: usuario de Auth sin pertenencias, sin fila en `platform_admins` y sin invitación
+  aceptada (resto de una activación interrumpida). No cuenta como "cuenta activa" en FR-010
+  (`admin_create_invitation` no devuelve `account_exists` por ella) y `activateAccount` la reutiliza
+  si su correo coincide con el de la invitación (spec, Edge Cases).
 - **`admin_create_invitation` / `admin_resend_invitation` / `admin_revoke_invitation`**,
   **`admin_update_quota`**, **`admin_set_organization_status`**,
   **`admin_discard_access_request`**: verifican `is_superadmin()`, validan, mutan y auditan en la misma
   transacción. `admin_create_invitation` es idempotente por `invitations.idempotency_key`: si la clave
   ya existe (también en un doble envío concurrente, vía `ON CONFLICT (idempotency_key) DO NOTHING` y
-  relectura) devuelve la misma invitación con `duplicate = true`, sin auditar ni cambiar nada. Firmas en [contracts/database-rpc.md](./contracts/database-rpc.md).
+  relectura) devuelve la misma invitación con `duplicate = true`, sin auditar ni cambiar nada.
+  `admin_resend_invitation` es idempotente por `invitations.resend_idempotency_key` (clave por diálogo
+  de confirmación): con `FOR UPDATE`, si la clave recibida es la del último reenvío aplicado devuelve
+  `duplicate = true` sin cambiar `token_hash` ni `expires_at` y sin auditar; si no, reemplaza el token,
+  reinicia el plazo, guarda la clave y audita `invitation.resent`. `admin_revoke_invitation` es
+  idempotente por estado: una invitación ya revocada devuelve `duplicate = true` sin auditar. Firmas en [contracts/database-rpc.md](./contracts/database-rpc.md).
 - **`update_my_profile`** (`authenticated`): exige sesión válida y pertenencia operativa (o
   superadmin), valida `profiles.full_name` y `profiles.timezone`, actualiza `profiles` y, si el usuario
   es el único miembro de una org `personal`, también `organizations.name` (= `full_name`) y
@@ -364,6 +385,7 @@ con factor TOTP de secreto conocido (e2e de administración) y otro sin factor (
 US4); organizaciones personales A y B con un vendedor cada una (`onboarding_status = completed`),
 cuotas por defecto y filas de `ai_usage` de ejemplo; organización personal C con su vendedor C
 (`onboarding_status = pending`, para US8 y el destino `/onboarding`); organización personal D
-`suspended` (con `suspended_reason`) y su vendedor D (acceso suspendido); solicitudes de acceso en los
+`suspended` (con `suspended_reason`) y su vendedor D (acceso suspendido); organización personal E
+`active` con su vendedor E y pertenencia `suspended` (FR-024, pertenencia suspendida); solicitudes de acceso en los
 tres estados; una invitación en cada estado. Todas las credenciales, el secreto TOTP y los tokens se
 documentan en `tests/e2e/fixtures/seed-data.ts`.

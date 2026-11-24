@@ -1,0 +1,5 @@
+import { PageSkeleton } from '@/components/states/page-skeleton';
+
+export default function Loading() {
+  return <PageSkeleton rows={3} label="Cargando tu bienvenida…" />;
+}

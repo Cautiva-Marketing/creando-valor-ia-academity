@@ -101,6 +101,11 @@ marcar superadmin (su revocación tarda hasta el siguiente refresh; se prefiere 
   un token nuevo (el hash anterior se reemplaza, por lo que el enlace viejo deja de funcionar) y
   reinicia el plazo. "Reintentar envío" tras un fallo usa la misma operación de reenvío (sin el token
   en claro no puede reenviarse el mismo enlace).
+- Idempotencia de reenvío y revocación (Principio II): cada diálogo de confirmación de reenvío genera
+  una `idempotencyKey`; `admin_resend_invitation` bloquea la fila (`FOR UPDATE`) y, si la clave es la
+  del último reenvío aplicado (`invitations.resend_idempotency_key`), no cambia el token ni audita, y
+  la action no envía otro correo. Así un doble clic no invalida el enlace que acaba de llegar.
+  Revocar una invitación ya revocada devuelve la misma confirmación sin auditar.
 - Estado **derivado** (`pendiente | aceptada | vencida | revocada`) calculado por
   `public.invitation_status()` a partir de `accepted_at`, `revoked_at` y `expires_at`; nunca se
   persiste un estado que pueda quedar desfasado.
@@ -111,11 +116,21 @@ marcar superadmin (su revocación tarda hasta el siguiente refresh; se prefiere 
   email_confirm: true })` → `public.accept_invitation(...)` (una transacción: `SELECT … FOR UPDATE`
   de la invitación, revalidación de estado y vencimiento, actualiza perfil, crea organización
   personal con `name = full_name` y slug único generado en SQL por `private.slugify` (extensión
-  `unaccent`, sufijo aleatorio ante colisión), pertenencia `vendedor` activa, cuota por defecto, aceptaciones legales,
+  `unaccent`, sufijo aleatorio ante colisión), pertenencia `vendedor` activa, cuota por defecto,
+  aceptaciones legales de las versiones que la página mostró (sus ids viajan en el formulario y deben
+  seguir vigentes; si no, `legal_outdated` y se vuelven a mostrar, FR-015),
   marca aceptada y audita) → `signInWithPassword` en el servidor (cookies) → redirección a
-  `/onboarding`. Si `accept_invitation` falla, se elimina el usuario recién creado (compensación).
+  `/onboarding`. Si `accept_invitation` falla, se elimina el usuario recién creado (compensación),
+  pero solo si sigue siendo huérfano (sin pertenencias): así nunca se borra una cuenta que otra
+  petición concurrente ya activó.
+- Cuenta huérfana (la compensación no llegó a ejecutarse, p. ej., caída del proceso): si
+  `createUser` falla porque el correo existe y esa cuenta es huérfana (sin pertenencias, no
+  superadmin, sin invitación aceptada) con el correo de la invitación, se reutiliza
+  (`auth.admin.updateUserById` con la nueva contraseña → `accept_invitation`). `accept_invitation`
+  exige que `p_user_id` sea huérfano y tenga el correo de la invitación. Así la persona nunca queda
+  bloqueada (FR-016) y `admin_create_invitation` no la trata como `account_exists` (FR-010).
 - Idempotencia/doble clic: el `FOR UPDATE` serializa; el segundo intento encuentra la invitación
-  aceptada o el correo ya registrado y responde "invitación ya usada → iniciar sesión", sin crear
+  aceptada (o una cuenta no huérfana) y responde "invitación ya usada → iniciar sesión", sin crear
   nada más. El botón se deshabilita mientras `pending`.
 - Registro abierto deshabilitado en Supabase Auth (`enable_signup = false`); la creación de usuarios
   solo es posible con la Admin API desde el servidor.
@@ -137,7 +152,7 @@ GoTrue).
 - Plantillas con **React Email** en `src/emails/` (invitación, recuperación), renderizadas a HTML y
   **texto plano**, con `color-scheme: light dark`, colores con contraste en ambos modos y sin depender
   de imágenes para el contenido.
-- Transporte único **SMTP con nodemailer**: Resend SMTP en staging/producción (dominio verificado
+- Transporte único **SMTP con nodemailer**: Resend SMTP en producción (dominio verificado
   con SPF/DKIM/DMARC en SiteGround DNS) y **Mailpit** del stack local de Supabase en desarrollo y CI
   (Playwright lee los enlaces por la API HTTP de Mailpit).
 - **Invitación**: la envía directamente la Server Action tras crear/reenviar; el resultado se guarda
@@ -238,19 +253,36 @@ verification attempt" de Supabase (solo planes Team/Enterprise).
 correo normalizado o de la IP (`x-real-ip`/`x-forwarded-for` de Vercel): no se guarda PII. Limpieza
 diaria con `pg_cron`.
 
+**Confianza en la IP**: `x-real-ip`/`x-forwarded-for` solo son confiables detrás de Vercel, que los
+sobrescribe con la IP real del cliente; la app no se despliega fuera de Vercel. En local y CI
+(`next start` sin proxy) el cliente puede fijarlos, y las pruebas e2e lo usan a propósito para
+aislarse entre sí (`uniqueClientIp()`, T059) o para probar un límite por IP con una IP fija propia.
+
 | Ámbito | Clave | Límite | Bloqueo | Dónde |
 |---|---|---|---|---|
 | `login_account` | correo | 5 fallos / 15 min | 15 min desde el último fallo | `signIn` action |
 | `login_ip` | IP | 20 fallos / 15 min | 15 min | `signIn` action |
-| `mfa_verify` | user_id | 5 fallos / 15 min | 15 min | `verifyMfa` action |
+| `mfa_verify` | user_id | 5 fallos / 15 min | 15 min | `verifyMfa` y `confirmMfaEnrollment` actions (contador compartido) |
 | `recovery_email` | correo | 3 / hora | hasta salir de la ventana (sin envío, misma confirmación) | `requestPasswordReset` action (solo consulta) **y** Send Email Hook (consulta + registra al enviar) |
-| `activation_ip` | IP | 10 / hora | hasta salir de la ventana | `activateAccount` action |
+| `activation_ip` | IP | 10 / hora | hasta salir de la ventana | `activateAccount` action y consulta de `/invitacion/[token]` (`getInvitationForToken`: solo los tokens inexistentes registran evento) |
 | `access_request_ip` | IP | 3 / hora | hasta salir de la ventana | `submitAccessRequest` action |
 | `webhook_id` | webhook-id | 1 / 24 h | 24 h | Send Email Hook (anti-replay) |
-| `user_mutation` | user_id | 60 / min | 1 min | toda Server Action autenticada sin ámbito propio (admin, perfil, onboarding), aplicado en los guards |
+| `user_mutation` | user_id | 60 / min | 1 min | toda Server Action autenticada sin ámbito propio (admin, perfil, onboarding, `resetPassword`, `enrollMfa`), aplicado en las variantes de Server Action de los guards; única excepción: `signOut` |
 
 `/auth/confirm` queda cubierto por el límite nativo `token_verifications` de Supabase (T008) y valida
 su query con Zod antes de llamar a Auth (Principio II).
+
+**Límites nativos de Supabase Auth por entorno**:
+
+- *Producción* (dashboard, T178): `sign_in_sign_ups` y `token_verifications` estrictos por
+  IP (mitigación del riesgo residual de abajo); `[auth.email] max_frequency = "1s"` y
+  `[auth.rate_limit] email_sent` ≥ 30/h, para que el límite propio de 3 recuperaciones por correo y
+  hora del Send Email Hook sea el que gobierne (con el intervalo mínimo nativo por usuario de ~60 s,
+  la 2.ª y la 3.ª solicitud legítimas de la hora no enviarían correo).
+- *Local y CI* (`supabase/config.toml`, T008): los mismos `max_frequency` y `email_sent`, y
+  `sign_in_sign_ups`/`token_verifications` holgados, porque la suite e2e (4 proyectos) llega a Auth
+  siempre desde 127.0.0.1 y no debe tropezar con límites nativos; los límites de FR-023 que prueba
+  la suite son los propios de esta tabla.
 
 El mensaje indica cuándo reintentar ("Vuelve a intentarlo en 12 minutos") sin revelar si la cuenta
 existe (el límite por cuenta se aplica igual a correos inexistentes).
@@ -314,7 +346,8 @@ blanca de claves por acción). Catálogo de acciones en [data-model.md](./data-m
 **Decisión**: formulario en `/solicitar-acceso` con Server Action que aplica: campo honeypot oculto,
 tiempo mínimo de llenado (≥ 3 s, con marca de tiempo firmada con HMAC en un campo oculto), rate
 limit 3/IP/hora y deduplicación por índice único parcial (`email` normalizado con `status = 'new'`
-y sin anonimizar). Ante duplicado se muestra la misma confirmación (no se revela existencia). La
+y sin anonimizar). La solicitud guarda la versión de la política de privacidad que se mostró
+(`privacyDocumentId`, que debe seguir vigente al enviar). Ante duplicado se muestra la misma confirmación (no se revela existencia). La
 inserción la hace el servidor con la clave secreta; `anon` no tiene permisos sobre la tabla (si los
 tuviera, un bot podría saltarse el rate limit llamando a PostgREST).
 
@@ -470,7 +503,16 @@ evaluará CSP por hashes para la landing.
   acceso.
 - **Playwright + axe**: proyectos `mobile-360` (360×800) y `desktop` (1280×800) × temas claro y
   oscuro; flujos de las 10 historias, suite de aislamiento A/B, recorrido solo con teclado, cero
-  violaciones `serious`/`critical`.
+  violaciones `serious`/`critical`. Los datos sembrados son de solo lectura en e2e: toda prueba que
+  muta estado (MFA, contraseña, suspensión, bloqueos, invitaciones, solicitudes) crea sus propios
+  datos con factorías (`tests/e2e/fixtures/factories.ts`, correos `<prefijo>+<uuid>@ejemplo.test`) y
+  cada prueba usa una IP propia (`uniqueClientIp()`), para que los 4 proyectos puedan ejecutarse en
+  paralelo sin compartir estado ni contadores de rate limit. Las aserciones localizan la fila propia
+  por su correo u organización únicos; los agregados globales (contador de solicitudes nuevas) y la
+  bandeja de solicitudes, que no tiene búsqueda, se prueban en un proyecto `global` en serie que corre
+  después de los paralelos (pruebas etiquetadas `@global`). Las factorías no crean `ai_usage`.
+- **Pruebas con usuarios** (fuera de CI, en producción antes de abrir el acceso): SC-001, SC-002 y SC-011 se miden con personas y
+  cronómetro según el protocolo de [quickstart.md](./quickstart.md#pruebas-con-usuarios-sc-001-sc-002-sc-011).
 - **Lighthouse CI**: landing, `/iniciar-sesion` y `/inicio` (con sesión sembrada), perfil móvil,
   asserts Performance ≥ 0,9 y Accessibility = 1.
 - **CI (GitHub Actions)**: `lint` → `typecheck` → `unit` → `db` (`supabase start`, `supabase db reset`,
@@ -491,8 +533,10 @@ Logs de servidor estructurados solo con ids y códigos.
 
 ## R22. Entornos, configuración y costos
 
-**Decisión**: entornos `local` (`supabase start`), `staging` y `production` (proyectos Supabase
-separados; previews de Vercel apuntan a staging). Variables:
+**Decisión**: entornos `local` (`supabase start`, también en CI) y `production` (un único proyecto
+Supabase; sin staging por decisión de negocio). Vercel despliega solo producción desde `main`:
+`vercel.json` omite los builds de preview (`ignoreCommand`), porque no tendrían base de datos y
+nunca deben apuntar a la de producción. La validación previa al merge es local + CI. Variables:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL`,
 `NEXT_PUBLIC_SUPPORT_EMAIL` (medio de contacto para usuarios suspendidos),
 `SUPABASE_SECRET_KEY`, `SEND_EMAIL_HOOK_SECRET`, `SMTP_HOST|PORT|USER|PASS`, `EMAIL_FROM`,
@@ -500,8 +544,10 @@ separados; previews de Vercel apuntan a staging). Variables:
 (dominio de destinatarios cuyo envío falla de forma simulada; `env.ts` la rechaza si `NODE_ENV` o
 `VERCEL_ENV` es `production`). Configuración de Auth versionada en
 `supabase/config.toml` (signup deshabilitado, MFA TOTP habilitado, longitud mínima 10,
-`otp_expiry = 3600`, hook de correo, URLs de redirección) y replicada en staging/producción por
-`supabase config push`.
+`otp_expiry = 3600`, hook de correo, URLs de redirección, `max_frequency` y `email_sent`) y
+replicada en producción por `supabase config push`, salvo los límites nativos por IP
+(`sign_in_sign_ups`, `token_verifications`), que en producción se fijan estrictos en el
+dashboard y en local/CI quedan holgados (R9).
 
 **Alerta de costos (Principio VI, para decisión de negocio, no bloquea esta feature)**:
 

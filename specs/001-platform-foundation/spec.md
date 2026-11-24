@@ -34,7 +34,7 @@ Como superadministrador (equipo Cautiva) invito por correo a una persona para qu
 2. **Given** una invitación pendiente, **When** el superadministrador la reenvía, **Then** el enlace anterior deja de funcionar, se emite un enlace nuevo, el plazo se reinicia y se registra el reenvío en la auditoría.
 3. **Given** una invitación pendiente, **When** el superadministrador la revoca, **Then** su estado pasa a "revocada", su enlace deja de permitir el acceso y la revocación queda auditada.
 4. **Given** una invitación cuyo plazo ya pasó sin ser aceptada, **When** el superadministrador consulta el listado, **Then** la ve como "vencida" y puede reenviarla (lo que genera un enlace nuevo y la vuelve "pendiente").
-5. **Given** el correo de una persona que ya tiene cuenta activa o una invitación pendiente, **When** el superadministrador intenta invitarla de nuevo, **Then** el sistema lo impide con un mensaje claro y ofrece reenviar la invitación existente cuando corresponde.
+5. **Given** el correo de una persona que ya tiene cuenta activa o una invitación abierta (pendiente o vencida), **When** el superadministrador intenta invitarla de nuevo, **Then** el sistema lo impide con un mensaje claro y ofrece reenviar la invitación existente cuando corresponde.
 6. **Given** un usuario que no es superadministrador, **When** intenta crear, reenviar, revocar o listar invitaciones (por la interfaz o directamente contra el servidor), **Then** la operación se rechaza y ve el estado "sin permiso".
 
 ---
@@ -75,7 +75,7 @@ Como usuario inicio y cierro sesión, recupero mi contraseña por correo y mi se
 5. **Given** un usuario que olvidó su contraseña, **When** la solicita con su correo, **Then** ve siempre la misma confirmación (exista o no la cuenta) y, si la cuenta existe, recibe un correo con la marca y en español con un enlace de un solo uso y vigencia limitada para definir una contraseña nueva.
 6. **Given** un enlace de recuperación vencido o ya usado, **When** se abre, **Then** se muestra un mensaje claro y la opción de solicitar uno nuevo.
 7. **Given** un visitante sin invitación, **When** busca una forma de crear cuenta, **Then** no existe ningún registro abierto; solo puede "Solicitar acceso" (Historia 10), y cualquier intento directo de alta sin invitación válida es rechazado por el servidor.
-8. **Given** 5 intentos fallidos de inicio de sesión para la misma cuenta en 15 minutos, **When** se intenta de nuevo, **Then** el sistema frena nuevos intentos durante 15 minutos con un mensaje claro que indica cuándo reintentar (FR-023). Si se superan 3 solicitudes de recuperación para el mismo correo en una hora, las adicionales no envían correo y muestran la misma confirmación genérica, sin revelar el límite ni si la cuenta existe.
+8. **Given** que se alcanzó el límite de intentos fallidos de inicio de sesión de FR-023 para la misma cuenta o IP, **When** se intenta de nuevo, **Then** el sistema frena nuevos intentos durante el bloqueo de FR-023 con un mensaje claro que indica cuándo reintentar. Si se supera el límite de solicitudes de recuperación de FR-023 para el mismo correo, las adicionales no envían correo y muestran la misma confirmación genérica, sin revelar el límite ni si la cuenta existe.
 
 ---
 
@@ -91,7 +91,7 @@ Como superadministrador inicio sesión con un segundo factor obligatorio basado 
 
 1. **Given** un superadministrador sin segundo factor registrado, **When** inicia sesión con su contraseña, **Then** solo puede acceder a la pantalla de registro del factor (código QR + clave manual + verificación de un código) y a cerrar sesión; ninguna otra pantalla ni operación de administración está disponible.
 2. **Given** un superadministrador con factor registrado, **When** ingresa su contraseña correcta, **Then** se le pide el código TOTP y solo tras verificarlo accede a la administración.
-3. **Given** un código TOTP incorrecto o expirado, **When** lo ingresa, **Then** ve un error claro y, tras 5 intentos fallidos en 15 minutos, se bloquean nuevos intentos durante 15 minutos (FR-023).
+3. **Given** un código TOTP incorrecto o expirado, **When** lo ingresa, **Then** ve un error claro y, al alcanzar el límite de códigos fallidos de FR-023 (al verificar o al registrar el factor), se bloquean nuevos intentos durante el bloqueo definido allí.
 4. **Given** una sesión de superadministrador que solo completó la contraseña, **When** intenta invocar cualquier operación de administración directamente contra el servidor, **Then** la operación se rechaza.
 5. **Given** cualquier inicio de sesión de superadministrador (exitoso o fallido en el segundo factor), **When** ocurre, **Then** queda registrado en la auditoría con actor, acción, resultado y marca de tiempo.
 
@@ -144,7 +144,7 @@ Como superadministrador configuro la cuota de simulaciones de cada organización
 
 **Acceptance Scenarios**:
 
-1. **Given** un superadministrador, **When** abre el listado de organizaciones, **Then** ve cada organización con tipo, estado, fecha de creación, cuota diaria, cuota mensual y consumo del periodo actual.
+1. **Given** un superadministrador, **When** abre el listado de organizaciones, **Then** ve cada organización con tipo, estado, fecha de creación, cuota diaria, cuota mensual y consumo del mes actual (en la zona horaria de la organización).
 2. **Given** una organización, **When** el superadministrador cambia su cuota diaria o mensual a valores válidos (enteros ≥ 0, con la diaria no mayor que la mensual), **Then** el cambio se guarda, se muestra una confirmación y queda auditado con el valor anterior y el nuevo.
 3. **Given** valores inválidos (negativos, no enteros o diaria > mensual), **When** intenta guardar, **Then** ve el error junto al campo y nada cambia.
 4. **Given** el panel de consumo, **When** el superadministrador elige un periodo (día, mes actual, mes anterior o rango), **Then** ve por organización: número de simulaciones, tokens de entrada, tokens de salida y costo estimado, más los totales.
@@ -202,7 +202,7 @@ Como visitante veo una landing pública mínima que explica la propuesta ("Pract
 1. **Given** un visitante, **When** abre la página pública, **Then** ve la propuesta de valor, una explicación breve de cómo funciona, el aviso de uso de IA, el botón "Solicitar acceso" y el acceso a "Iniciar sesión".
 2. **Given** el formulario de solicitud (nombre, correo, empresa u ocupación opcional, mensaje opcional y aceptación de la política de privacidad), **When** lo envía con datos válidos, **Then** ve una confirmación clara y la solicitud queda en estado "nueva".
 3. **Given** datos inválidos o sin aceptar la política, **When** lo envía, **Then** ve los errores junto a cada campo sin perder lo escrito.
-4. **Given** envíos repetidos o automatizados, **When** superan los límites anti-abuso (más de 3 envíos por IP por hora, FR-023), **Then** son rechazados sin revelar detalles internos; un correo con una solicitud "nueva" ya existente no genera duplicados.
+4. **Given** envíos repetidos o automatizados, **When** superan los límites anti-abuso de FR-023, **Then** son rechazados sin revelar detalles internos; un correo con una solicitud "nueva" ya existente no genera duplicados.
 5. **Given** el superadministrador en la bandeja de solicitudes, **When** elige "Convertir en invitación", **Then** se abre la creación de invitación con el correo precargado y, al enviarla, la solicitud pasa a "invitada" y queda vinculada a la invitación.
 6. **Given** una solicitud, **When** el superadministrador la descarta, **Then** pasa a "descartada" y deja de aparecer entre las pendientes de revisar.
 
@@ -214,6 +214,8 @@ Como visitante veo una landing pública mínima que explica la propuesta ("Pract
 - **Dos clics simultáneos en "Activar cuenta"** o doble envío del formulario de invitación: se procesan una sola vez (una sola cuenta, una sola organización personal, un solo registro de auditoría de aceptación).
 - **Invitación revocada mientras la persona tiene el formulario abierto**: al confirmar, se rechaza con el mensaje de AC-02.
 - **Invitación que vence mientras la persona completa el formulario**: se valida al confirmar, no solo al abrir el enlace.
+- **Documento legal que cambia de versión mientras el formulario está abierto** (términos o aviso de IA en la activación; política de privacidad en "Solicitar acceso"): al confirmar no se registra la aceptación de una versión que la persona no vio; se le muestra la versión nueva, conservando lo ya escrito (salvo la contraseña), y debe aceptarla de nuevo.
+- **Fallo a mitad de la activación** (p. ej., caída entre la creación de la cuenta y la de su organización): la invitación sigue pendiente y la persona puede reintentar con el mismo enlace hasta completarla. Una cuenta huérfana (sin pertenencias, sin rol de superadministrador y sin invitación aceptada) no bloquea la activación ni cuenta como "cuenta activa" a efectos de FR-010.
 - **Correo con mayúsculas o espacios** (`Ana@Ejemplo.pe `): se normaliza para detectar duplicados e invitaciones existentes.
 - **Reenvío de una invitación vencida**: genera enlace nuevo, invalida el anterior y reinicia el plazo.
 - **Fallo del envío de correo**: la invitación se crea pero queda marcada con "envío fallido"; el superadministrador ve el aviso y puede reintentar el envío.
@@ -245,7 +247,7 @@ Como visitante veo una landing pública mínima que explica la propuesta ("Pract
 - **FR-007**: El superadministrador DEBE poder invitar a una persona por correo como vendedor individual, eligiendo un plazo de vencimiento entre 1 y 30 días (por defecto 7).
 - **FR-008**: Cada invitación DEBE tener un enlace único, imposible de adivinar y de un solo uso, y un estado derivado: `pendiente`, `aceptada`, `vencida` o `revocada`.
 - **FR-009**: El superadministrador DEBE poder listar invitaciones filtrando por estado y buscando por correo, y reenviar (invalida el enlace anterior, emite uno nuevo y reinicia el plazo) o revocar invitaciones pendientes o vencidas.
-- **FR-010**: El sistema DEBE impedir crear una invitación para un correo que ya tiene cuenta activa o una invitación pendiente, con un mensaje claro.
+- **FR-010**: El sistema DEBE impedir crear una invitación para un correo que ya tiene cuenta activa (con al menos una pertenencia o rol de superadministrador) o una invitación abierta (pendiente o vencida), con un mensaje claro que ofrezca reenviar la invitación existente cuando corresponda.
 - **FR-011**: Una invitación vencida, revocada o ya aceptada NO DEBE permitir crear cuenta ni acceder; DEBE mostrarse un mensaje claro en español que explique la causa y cómo solicitar una nueva (AC-02). La validez se comprueba en el servidor al abrir el enlace y de nuevo al confirmar.
 - **FR-012**: El sistema DEBE enviar correos transaccionales de invitación con la marca Creando Valor IA™, en español, con el nombre de quien invita (equipo Cautiva), el plazo de vencimiento y una versión en texto plano.
 - **FR-013**: Si el envío de un correo falla, la invitación DEBE quedar marcada con el fallo y el superadministrador DEBE poder reintentar el envío.
@@ -253,8 +255,8 @@ Como visitante veo una landing pública mínima que explica la propuesta ("Pract
 **Activación de cuenta y organización personal**
 
 - **FR-014**: Al abrir una invitación válida, la persona DEBE poder definir su nombre y una contraseña que cumpla la política (mínimo 10 caracteres, no figurar en listas de contraseñas comunes o filtradas, distinta del correo), con indicador de requisitos en tiempo real.
-- **FR-015**: La persona DEBE aceptar explícitamente los términos de uso y el aviso de uso de IA; el sistema DEBE guardar qué versión de cada documento aceptó y cuándo.
-- **FR-016**: Al confirmar, el sistema DEBE, como una única operación atómica e idempotente: crear la cuenta, crear la organización personal (tipo `personal`, estado activo, nombre igual al nombre de la persona (`full_name`) y slug único derivado de ese nombre, zona horaria America/Lima), crear la pertenencia activa con el rol `vendedor` (único miembro de la organización), asignarle la cuota por defecto, marcar la invitación como aceptada y registrar la aceptación en la auditoría.
+- **FR-015**: La persona DEBE aceptar explícitamente los términos de uso y el aviso de uso de IA; el sistema DEBE guardar la versión de cada documento que se le mostró y aceptó, y cuándo. Si una versión cambió mientras tenía el formulario abierto, al confirmar se le muestra la nueva y debe aceptarla de nuevo (ver Edge Cases).
+- **FR-016**: Al confirmar, el sistema DEBE, como una única operación atómica e idempotente: crear la cuenta, crear la organización personal (tipo `personal`, estado activo, nombre igual al nombre de la persona (`full_name`) y slug único derivado de ese nombre, zona horaria America/Lima), crear la pertenencia activa con el rol `vendedor` (único miembro de la organización), asignarle la cuota por defecto, marcar la invitación como aceptada y registrar la aceptación en la auditoría. Si la operación falla a mitad, NO DEBE quedar un estado que impida reintentar con el mismo enlace (ver Edge Cases, "Fallo a mitad de la activación").
 - **FR-017**: Tras activar la cuenta, la persona DEBE quedar autenticada y llegar al onboarding.
 
 **Sesión y credenciales**
@@ -266,7 +268,7 @@ Como visitante veo una landing pública mínima que explica la propuesta ("Pract
 - **FR-022**: NO DEBE existir registro abierto: toda creación de cuenta sin invitación válida DEBE ser rechazada por el servidor.
 - **FR-023**: El sistema DEBE limitar en el servidor la frecuencia de intentos, con un mensaje claro al usuario que indique cuándo puede reintentar (sin revelar si la cuenta existe), salvo en la recuperación de contraseña, donde se mantiene la confirmación genérica; con estos límites:
   - Inicio de sesión: 5 intentos fallidos por cuenta o 20 por IP en una ventana de 15 minutos → bloqueo de 15 minutos.
-  - Verificación del segundo factor (TOTP): 5 códigos fallidos en 15 minutos → bloqueo de 15 minutos.
+  - Verificación del segundo factor (TOTP), tanto al iniciar sesión como al registrar el factor: 5 códigos fallidos en 15 minutos → bloqueo de 15 minutos.
   - Recuperación de contraseña: 3 solicitudes por correo por hora (las que se excedan no envían correo y muestran la misma confirmación genérica).
   - Activación de invitación: 10 intentos por IP por hora.
   - Solicitar acceso: 3 envíos por IP por hora.
@@ -319,9 +321,9 @@ Como visitante veo una landing pública mínima que explica la propuesta ("Pract
 **Landing y solicitudes de acceso**
 
 - **FR-047**: DEBE existir una página pública con la propuesta "Practica la venta antes de hacerla de verdad", una explicación breve del funcionamiento, el aviso de uso de IA, "Solicitar acceso" e "Iniciar sesión", y enlaces a términos de uso y política de privacidad.
-- **FR-048**: El formulario "Solicitar acceso" DEBE pedir nombre, correo, empresa u ocupación (opcional), mensaje (opcional, máx. 500 caracteres) y aceptación de la política de privacidad; DEBE protegerse contra envíos automatizados y abusivos, y evitar duplicados de solicitudes "nuevas" para el mismo correo.
+- **FR-048**: El formulario "Solicitar acceso" DEBE pedir nombre, correo, empresa u ocupación (opcional), mensaje (opcional, máx. 500 caracteres) y aceptación de la política de privacidad (se guarda la versión que se mostró y aceptó; si cambió mientras el formulario estaba abierto, se muestra la nueva y debe aceptarse de nuevo); DEBE protegerse contra envíos automatizados y abusivos, y evitar duplicados de solicitudes "nuevas" para el mismo correo.
 - **FR-049**: El superadministrador DEBE ver una bandeja de solicitudes (estados `nueva`, `invitada`, `descartada`) con contador de nuevas, y poder convertir una solicitud en invitación (correo precargado, vinculando ambas) o descartarla.
-- **FR-049a**: El sistema DEBE aplicar automáticamente (al menos una vez al día) esta retención a las solicitudes de acceso: (a) las solicitudes `nueva` sin revisar durante 180 días desde su creación pasan a `descartada`; (b) las solicitudes `descartada` se anonimizan a los 90 días del descarte, borrando nombre, correo, empresa u ocupación y mensaje, y conservando solo estado, fechas y la marca de anonimizada; (c) las solicitudes `invitada` se conservan mientras exista la invitación o la cuenta vinculada. Los descartes automáticos quedan auditados con actor "sistema". La anonimización es irreversible.
+- **FR-049a**: El sistema DEBE aplicar automáticamente (al menos una vez al día) esta retención a las solicitudes de acceso: (a) las solicitudes `nueva` sin revisar durante 180 días desde su creación pasan a `descartada`; (b) las solicitudes `descartada` se anonimizan a los 90 días del descarte, borrando nombre, correo, empresa u ocupación y mensaje, y conservando solo datos no personales (estado, fechas, marcas de descarte y anonimización, documento de privacidad aceptado y vínculos a invitación y revisor); (c) las solicitudes `invitada` se conservan mientras exista la invitación o la cuenta vinculada. Los descartes automáticos quedan auditados con actor "sistema". La anonimización es irreversible.
 
 **Correos y lenguaje**
 
@@ -334,7 +336,7 @@ Como visitante veo una landing pública mínima que explica la propuesta ("Pract
 
 ### Key Entities *(include if feature involves data)*
 
-- **Organización**: unidad de aislamiento de datos. Nombre, slug único, tipo (`personal` | `empresa`), sector, zona horaria, estado (activa/suspendida), motivo, fecha y autor de la última suspensión, fechas de creación y actualización.
+- **Organización**: unidad de aislamiento de datos. Nombre, slug único, tipo (`personal` | `empresa`), sector, zona horaria, estado (activa/suspendida), motivo, fecha y autor de la última suspensión (se conservan al reactivar y solo se muestran mientras está suspendida), fechas de creación y actualización.
 - **Usuario / Perfil**: persona con cuenta. Correo (único), nombre, zona horaria, marca de superadministrador a nivel plataforma, estado del onboarding (paso actual, completado/saltado), aceptaciones de términos y aviso de IA con versión y fecha (la preferencia de tema se guarda en el dispositivo, FR-038).
 - **Pertenencia (membership)**: relación usuario–organización con uno o más roles (`admin_empresa`, `supervisor`, `instructor`, `vendedor`), estado (activa, invitada, suspendida), fecha de invitación y fecha de alta.
 - **Invitación**: correo destino, organización y rol(es) destino (en esta etapa, nueva organización personal con rol vendedor), quien invita, fecha de creación, vencimiento, último envío, resultado del envío, estado (pendiente/aceptada/vencida/revocada), fecha de aceptación o revocación, solicitud de acceso de origen (opcional).
@@ -371,7 +373,7 @@ Como visitante veo una landing pública mínima que explica la propuesta ("Pract
 - **Cuota por defecto**: 10 simulaciones por día y 100 por mes para cada organización nueva, ajustable por el superadministrador; el bloqueo efectivo al agotarse la cuota (AC-07) se implementa en la feature 002.
 - **Consumo de IA**: en esta etapa no hay llamadas a IA; el panel de consumo muestra estado vacío o datos de prueba. El costo estimado se expresa en USD (moneda de facturación del proveedor de IA).
 - **Textos legales**: Cautiva provee los textos de términos de uso, aviso de uso de IA y política de privacidad; mientras no estén, se usan borradores versionados marcados como tales.
-- **Sesión**: persistencia de hasta 30 días con renovación por actividad y cierre tras 7 días de inactividad (12 horas para superadministrador), práctica estándar para SaaS B2B.
+- **Sesión**: la duración de FR-019 sigue la práctica estándar para SaaS B2B.
 - **Recuperación de MFA del superadministrador**: sin autoservicio ni interfaz; solo mediante el procedimiento operativo interno documentado (FR-027a), con auditoría.
 - **Cambio de correo, eliminación de cuenta, exportación de datos y gestión de sesiones múltiples**: fuera de alcance en esta etapa.
 - **Notificaciones**: las solicitudes de acceso nuevas se ven en la bandeja con contador; no se envía correo al superadministrador en esta etapa.

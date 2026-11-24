@@ -1,0 +1,189 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tokens → Tailwind v4 utilities. Default palette removed: only semantic colors exist. */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-success: var(--success);
+  --color-on-success: var(--on-success);
+  --color-warning: var(--warning);
+  --color-on-warning: var(--on-warning);
+  --color-danger: var(--danger);
+  --color-on-danger: var(--on-danger);
+  --color-info: var(--info);
+  --color-on-info: var(--on-info);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-focus-ring: var(--focus-ring);
+  --color-scrim: var(--scrim);
+  --color-avatar-1: var(--avatar-1);
+  --color-on-avatar-1: var(--on-avatar-1);
+  --color-avatar-2: var(--avatar-2);
+  --color-on-avatar-2: var(--on-avatar-2);
+  --color-avatar-3: var(--avatar-3);
+  --color-on-avatar-3: var(--on-avatar-3);
+  --color-avatar-4: var(--avatar-4);
+  --color-on-avatar-4: var(--on-avatar-4);
+  --color-avatar-5: var(--avatar-5);
+  --color-on-avatar-5: var(--on-avatar-5);
+  --color-avatar-6: var(--avatar-6);
+  --color-on-avatar-6: var(--on-avatar-6);
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+
+  --text-xs: var(--type-xs);
+  --text-xs--line-height: 1rem;
+  --text-sm: var(--type-sm);
+  --text-sm--line-height: 1.25rem;
+  --text-base: var(--type-base);
+  --text-base--line-height: 1.5rem;
+  --text-lg: var(--type-lg);
+  --text-lg--line-height: 1.6;
+  --text-xl: var(--type-xl);
+  --text-xl--line-height: 1.4;
+  --text-2xl: var(--type-2xl);
+  --text-2xl--line-height: 1.3;
+  --text-3xl: var(--type-3xl);
+  --text-3xl--line-height: 1.2;
+  --text-4xl: var(--type-4xl);
+  --text-4xl--line-height: 1.1;
+
+  --spacing: var(--space-unit);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+
+  --shadow-*: initial;
+  --shadow-sm: var(--elevation-1);
+  --shadow-md: var(--elevation-2);
+  --shadow-lg: var(--elevation-3);
+
+  --ease-standard: var(--ease-standard);
+  --ease-emphasized: var(--ease-emphasized);
+
+  --size-touch: var(--touch-target);
+  --spacing-touch: var(--touch-target);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+    font-size: var(--type-base);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-bricolage), var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  /* Visible focus ring everywhere (WCAG 2.2 AA). */
+  :focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Minimum touch target of 44 px. */
+  :where(
+    button,
+    [role='button'],
+    select,
+    summary,
+    input:not([type='checkbox'], [type='radio'], [type='hidden'])
+  ) {
+    min-height: var(--touch-target);
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--on-accent);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* App shell: bottom bar height (3.5rem) + breathing room, plus the device safe area. */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility pb-bottom-nav {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+@utility min-h-bottom-nav {
+  min-height: 3.5rem;
+}
+
+/* Bottom sheet: never taller than 85% of the dynamic viewport. */
+@utility max-h-sheet {
+  max-height: 85dvh;
+}
+/* Vertical hit area of 44 px around compact controls (e.g. switch track of 28 px). */
+@utility hit-area-y {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block: calc((var(--touch-target) - 100%) / -2);
+  }
+}
+/* Progress indicator driven by the --progress custom property (0–100). */
+@utility progress-fill {
+  transform: translateX(calc((var(--progress, 0) - 100) * 1%));
+}

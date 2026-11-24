@@ -9,7 +9,7 @@
   con Figtree/Bricolage como preferencia (los clientes que no cargan fuentes web usan el respaldo).
 - Pie: "Creando Valor IA™ — Cautiva Marketing", motivo del correo y aviso de que es automático.
 - Nunca se registra el enlace ni el token en logs, Sentry ni auditoría.
-- Transporte: nodemailer SMTP (`SMTP_HOST|PORT|USER|PASS`): Resend en staging/producción, Mailpit
+- Transporte: nodemailer SMTP (`SMTP_HOST|PORT|USER|PASS`): Resend en producción, Mailpit
   en local/CI.
 - Clientes objetivo de verificación manual: Gmail (web, Android, iOS), Outlook (web, escritorio),
   Apple Mail (macOS, iOS), en claro y oscuro.

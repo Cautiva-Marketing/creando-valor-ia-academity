@@ -19,7 +19,7 @@ con `aal2`.
 | `/recuperar-contrasena` | A | Correo → confirmación genérica siempre igual | H3, FR-020 |
 | `/auth/confirm` | P (route handler) | Query validada con Zod (`authConfirmParams`: `token_hash`, `type = recovery`, `next` interno) → `verifyOtp(token_hash, type=recovery)` → `/restablecer-contrasena`; parámetros inválidos o enlace inválido/vencido → `/recuperar-contrasena?estado=enlace-invalido` | FR-020 |
 | `/restablecer-contrasena` | sesión de recuperación | Nueva contraseña con indicador de requisitos; al guardar cierra las demás sesiones | FR-020, FR-021 |
-| `/invitacion/[token]` | P | `[token]` se valida con Zod (`invitationTokenParam`, 43 caracteres base64url) antes de cualquier consulta; si no valida → mensaje de enlace manipulado/inexistente. Válida: correo (solo lectura), nombre, contraseña, términos, aviso IA. Inválida: mensaje según causa (vencida, revocada, ya usada → "Iniciar sesión", manipulada/inexistente → genérico) y cómo pedir otra | H2, FR-011, FR-014–017 |
+| `/invitacion/[token]` | P | `[token]` se valida con Zod (`invitationTokenParam`, 43 caracteres base64url) antes de cualquier consulta; si no valida → mensaje de enlace manipulado/inexistente. La consulta aplica el rate limit `activation_ip` (los tokens inexistentes cuentan como fallo); si está bloqueado → mensaje con minutos de reintento. Válida: correo (solo lectura), nombre, contraseña, términos, aviso IA. Inválida: mensaje según causa (vencida, revocada, ya usada → "Iniciar sesión", manipulada/inexistente → genérico) y cómo pedir otra | H2, FR-011, FR-014–017 |
 | `/mfa/registrar` | S1 sin factor | QR + clave manual + verificación; única salida: cerrar sesión | H4, FR-025 |
 | `/mfa/verificar` | S1 con factor | Código TOTP; bloqueo tras 5 fallos | H4, FR-023, FR-025 |
 | `/acceso-suspendido` | sesión sin pertenencia operativa | Mensaje explicativo + contacto + cerrar sesión | FR-024 |
@@ -32,10 +32,10 @@ con `aal2`.
 | `/onboarding` | V | 3 pasos con "Paso n de 3", Saltar, Siguiente/Anterior; retoma en `onboarding_step` | H8, FR-034 |
 | `/perfil` | V, S2 | Nombre, zona horaria (combobox con buscador), avatar con iniciales, correo y fechas de aceptación (solo lectura) | H9, FR-035–036 |
 | `/admin` | S2 | Redirige a `/admin/invitaciones` | — |
-| `/admin/invitaciones` | S2 | Tabla/lista: correo, estado, vence, último envío, envío fallido; filtros por estado, búsqueda por correo; reenviar, revocar, reintentar envío; paginación de 20 | H1, FR-009, FR-013 |
-| `/admin/invitaciones/nueva` | S2 | Correo, plazo 1–30 (7); `?solicitud={id}` (validado con `z.uuid()`) precarga correo y vincula; si no es válido o la solicitud no es convertible, formulario sin precarga con aviso informativo; el formulario lleva una `idempotencyKey` oculta generada en el servidor | H1, H10 |
+| `/admin/invitaciones` | S2 | Tabla/lista: correo, estado, vence, último envío, envío fallido; filtros por estado, búsqueda por correo; reenviar, revocar, reintentar envío (cada diálogo de confirmación de reenvío lleva su propia `idempotencyKey`); paginación de 20 | H1, FR-009, FR-013 |
+| `/admin/invitaciones/nueva` | S2 | Correo, plazo 1–30 (7); `?solicitud={id}` (validado con el esquema `convertibleRequestParam`, `z.uuid()`) precarga correo y vincula; si no es válido o la solicitud no es convertible, formulario sin precarga con aviso informativo; el formulario lleva una `idempotencyKey` oculta generada en el servidor | H1, H10 |
 | `/admin/solicitudes` | S2 | Bandeja con contador de nuevas; filtro por estado; convertir en invitación, descartar; anonimizadas sin datos personales ni acción de convertir | H10, FR-049 |
-| `/admin/organizaciones` | S2 | Lista: nombre, tipo, estado, creación, cuota diaria/mensual, consumo del mes actual; editar cuota (diálogo), suspender (diálogo con motivo obligatorio ≤ 500) / reactivar (confirmación) | H7, FR-024a, FR-030–031 |
+| `/admin/organizaciones` | S2 | Lista: nombre, tipo, estado, creación, cuota diaria/mensual, consumo del mes actual; editar cuota (diálogo), suspender (diálogo con motivo obligatorio de 1–500 caracteres, no solo espacios) / reactivar (confirmación) | H7, FR-024a, FR-030–031 |
 | `/admin/consumo` | S2 | Periodo: hoy, mes actual, mes anterior, rango; por organización simulaciones, tokens entrada/salida, costo US$ y totales; estado vacío explicativo | H7, FR-033 |
 | `/design` | S2 | Tokens y componentes vivos en claro y oscuro con estados | H6, FR-044 |
 

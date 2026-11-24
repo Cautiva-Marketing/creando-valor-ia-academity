@@ -1,0 +1,49 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+out/
+build/
+dist/
+next-env.d.ts
+*.tsbuildinfo
+
+# env (never commit secrets; .env.example is the template)
+.env
+.env*.local
+.env.*
+!.env.example
+
+# testing
+coverage/
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+tests/e2e/.auth/
+.lighthouseci/
+
+# supabase
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# sentry
+.sentryclirc
+
+# vercel
+.vercel/
+
+# logs & misc
+*.log
+npm-debug.log*
+pnpm-debug.log*
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.codegraph/

@@ -1,0 +1,79 @@
+{
+  "name": "creando-valor-ia",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "next typegen && tsc --noEmit",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "check:bundle-secrets": "node scripts/ci/check-bundle-secrets.mjs",
+    "lhci": "node scripts/ci/lighthouse.mjs",
+    "email:dev": "email dev --dir src/emails --port 3001"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@sentry/cli",
+      "esbuild",
+      "sharp",
+      "supabase",
+      "unrs-resolver"
+    ]
+  },
+  "dependencies": {
+    "@react-email/render": "2.3.1",
+    "@sentry/nextjs": "11.16.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.119.2",
+    "@tailwindcss/postcss": "4.3.5",
+    "@vercel/analytics": "2.0.1",
+    "@vercel/speed-insights": "2.1.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "cmdk": "1.1.1",
+    "lucide-react": "1.78.0",
+    "motion": "14.14.0",
+    "next": "16.4.6",
+    "next-themes": "0.4.6",
+    "nodemailer": "10.6.1",
+    "radix-ui": "1.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-email": "6.11.16",
+    "server-only": "0.0.1",
+    "sonner": "2.0.8",
+    "standardwebhooks": "1.3.0",
+    "tailwind-merge": "3.7.1",
+    "tailwindcss": "4.3.5",
+    "vaul": "1.1.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@lhci/cli": "0.16.1",
+    "@playwright/test": "1.65.1",
+    "@types/node": "24.19.2",
+    "@types/nodemailer": "8.0.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.6",
+    "prettier": "3.10.1",
+    "supabase": "3.3.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "5.1.1"
+  }
+}
