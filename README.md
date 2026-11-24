@@ -86,8 +86,8 @@ Regenerar tipos tras una migración:
 ## Entornos
 
 `local` (`supabase start`, también en CI) y `production` (un único proyecto Supabase, sin staging).
-Vercel despliega producción desde `main`; `vercel.json` omite los builds de preview porque no tienen
-base de datos y nunca deben apuntar a la de producción. La validación antes del merge es local + CI
+Vercel despliega producción desde `main` (framework Next.js, Node 24) y tiene las preview deployments
+deshabilitadas en la configuración del proyecto, porque no tendrían base de datos y nunca deben apuntar a la de producción. La validación antes del merge es local + CI
 (research.md §R22).
 
 ### Aprovisionamiento de producción (una vez)

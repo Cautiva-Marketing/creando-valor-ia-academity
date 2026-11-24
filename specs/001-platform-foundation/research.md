@@ -535,7 +535,7 @@ Logs de servidor estructurados solo con ids y códigos.
 
 **Decisión**: entornos `local` (`supabase start`, también en CI) y `production` (un único proyecto
 Supabase; sin staging por decisión de negocio). Vercel despliega solo producción desde `main`:
-`vercel.json` omite los builds de preview (`ignoreCommand`), porque no tendrían base de datos y
+las preview deployments están deshabilitadas en el proyecto de Vercel, porque no tendrían base de datos y
 nunca deben apuntar a la de producción. La validación previa al merge es local + CI. Variables:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL`,
 `NEXT_PUBLIC_SUPPORT_EMAIL` (medio de contacto para usuarios suspendidos),
