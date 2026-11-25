@@ -1,7 +1,14 @@
 import 'server-only';
-import { Output, parsePartialJson, streamText } from 'ai';
+import {
+  generateText,
+  NoObjectGeneratedError,
+  NoOutputGeneratedError,
+  Output,
+  parsePartialJson,
+  streamText,
+} from 'ai';
 import { AI_TASK_CONFIG, callSettingsFor } from '@/lib/ai/config';
-import { getModel, type ResolvedModel } from '@/lib/ai/provider';
+import { failoverWait, modelForAttempt, type ResolvedModel } from '@/lib/ai/provider';
 import { isRetryableAiError } from '@/lib/ai/retry';
 import { recordAiUsage, type AiUsageInput } from '@/lib/ai/usage';
 import { buildBuyerPrompt, turnContextFor, type TurnContextPayload } from './buyer-context';
@@ -20,6 +27,10 @@ import { validateTurnMeta } from './validate-turn-meta';
  *   reported so it is added to `provider_wait_ms` (FR-028d).
  * - `reset`: discard the provisional text (invalid metadata, out-of-role guard, forced farewell
  *   regeneration, or a provider error after text was shown).
+ *
+ * Provider attempt n uses model n of the task's chain (src/lib/ai/provider.ts): a 429/5xx fails over
+ * to the next model without waiting. Models that cannot stream structured output (Groq) generate the
+ * whole turn and emit `reply` as a single delta; validation and guards are the same.
  *
  * Invalid metadata is regenerated up to 2 times; then the last text is kept with change 0
  * (`fallback`). A provider error after the first delta ends the turn without a reply. The caller must
@@ -50,7 +61,8 @@ export interface BuyerTurnInput {
 }
 
 export interface BuyerTurnDeps {
-  resolveModel?: () => ResolvedModel;
+  /** Model of provider attempt n within a generation (default: the buyer chain). */
+  resolveModel?: (attempt: number) => ResolvedModel;
   recordUsage?: (row: AiUsageInput) => Promise<void>;
   /** Waits before provider retries (default 1 s and 3 s + jitter). */
   delaysMs?: readonly number[];
@@ -79,11 +91,56 @@ class ProviderStreamError extends Error {
 
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/** `reply` of a (possibly partial) JSON text, or undefined. */
+async function replyOf(raw: string): Promise<string | undefined> {
+  const { value } = await parsePartialJson(raw);
+  const reply =
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as { reply?: unknown }).reply
+      : undefined;
+  return typeof reply === 'string' ? reply : undefined;
+}
+
+/**
+ * Non-streaming generation for providers without structured streaming. Output that does not match
+ * the schema is returned as raw text so the caller validates it and regenerates like invalid
+ * metadata (it is never a provider failure).
+ */
+async function generateWholeTurn(
+  model: ResolvedModel['model'],
+  prompt: ReturnType<typeof buildBuyerPrompt>,
+): Promise<{ raw: string; tokens: { inputTokens?: number; outputTokens?: number } }> {
+  try {
+    const result = await generateText({
+      model,
+      system: prompt.system,
+      messages: prompt.messages,
+      output: Output.object({ schema: buyerTurnOutputSchema }),
+      ...callSettingsFor('buyer'),
+      abortSignal: AbortSignal.timeout(AI_TASK_CONFIG.buyer.timeoutMs),
+    });
+    return {
+      raw: result.text,
+      tokens: { inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens },
+    };
+  } catch (error) {
+    if (NoObjectGeneratedError.isInstance(error)) {
+      return {
+        raw: error.text ?? '',
+        tokens: { inputTokens: error.usage?.inputTokens, outputTokens: error.usage?.outputTokens },
+      };
+    }
+    if (NoOutputGeneratedError.isInstance(error)) return { raw: '', tokens: {} };
+    throw error;
+  }
+}
+
 export async function* runBuyerTurn(
   input: BuyerTurnInput,
   deps: BuyerTurnDeps = {},
 ): AsyncGenerator<BuyerTurnEvent, BuyerTurnResult, void> {
-  const { model, modelId } = (deps.resolveModel ?? (() => getModel('buyer')))();
+  const resolve = deps.resolveModel ?? ((n: number) => modelForAttempt('buyer', n));
+  let modelId = resolve(1).modelId;
   const record = deps.recordUsage ?? recordAiUsage;
   const delays = deps.delaysMs ?? [1000, 3000];
   const random = deps.random ?? Math.random;
@@ -119,6 +176,7 @@ export async function* runBuyerTurn(
   for (let generation = 0; generation <= MAX_REGENERATIONS + 1; generation++) {
     const prompt = buildBuyerPrompt(input.context, serverNote);
     const startedBudget = Date.now();
+    const waitFor = failoverWait(resolve);
 
     // Provider attempts of this generation: retried only before the first delta.
     let raw = '';
@@ -128,11 +186,28 @@ export async function* runBuyerTurn(
     let latencyMs = 0;
     for (let providerAttempt = 1; ; providerAttempt++) {
       attempt++;
+      const resolved = resolve(providerAttempt);
+      const model = resolved.model;
+      modelId = resolved.modelId;
       const startedAt = performance.now();
       raw = '';
       emitted = '';
       firstChunkMs = null;
       try {
+        if (resolved.streamsStructuredOutput === false) {
+          // Whole turn in one call; the reply is emitted once the JSON is complete.
+          const whole = await generateWholeTurn(model, prompt);
+          raw = whole.raw;
+          tokens = whole.tokens;
+          latencyMs = performance.now() - startedAt;
+          const reply = await replyOf(raw);
+          if (reply) {
+            emitted = reply;
+            firstChunkMs = latencyMs;
+            yield { type: 'delta', text: reply };
+          }
+          break;
+        }
         const result = streamText({
           model,
           system: prompt.system,
@@ -148,11 +223,7 @@ export async function* runBuyerTurn(
           if (part.type === 'error') throw new ProviderStreamError(part.error, emitted.length > 0);
           if (part.type !== 'text-delta') continue;
           raw += part.text;
-          const { value } = await parsePartialJson(raw);
-          const reply =
-            value && typeof value === 'object' && !Array.isArray(value)
-              ? (value as { reply?: unknown }).reply
-              : undefined;
+          const reply = await replyOf(raw);
           if (
             typeof reply === 'string' &&
             reply.length > emitted.length &&
@@ -178,12 +249,17 @@ export async function* runBuyerTurn(
         const wasEmitting = emitted.length > 0;
         const retryable = isRetryableAiError(inner);
         const base = delays[Math.min(providerAttempt - 1, delays.length - 1)] ?? 0;
-        const waitMs = Math.round(base * (1 + random() * 0.25));
+        // Failing over is immediate; the same model backs off (and honours retry-after).
+        const waitMs = waitFor(
+          providerAttempt + 1,
+          Math.round(base * (1 + random() * 0.25)),
+          inner,
+        );
         const withinBudget = Date.now() - startedBudget + waitMs <= PROVIDER_BUDGET_MS;
         if (!wasEmitting && retryable && providerAttempt < MAX_PROVIDER_ATTEMPTS && withinBudget) {
           await record(usage('retry', latencyMs));
           yield { type: 'retrying', attempt: providerAttempt + 1, waitMs };
-          await sleep(waitMs);
+          if (waitMs > 0) await sleep(waitMs);
           providerWaitMs += waitMs;
           continue;
         }

@@ -192,4 +192,25 @@ describe('generateBuyerSetup', () => {
     expect(result.ok).toBe(true);
     expect(mock.prompts[0]).toContain('generar_objecion_oculta');
   });
+
+  it('fails over to the next model of the chain on 429 without waiting, recording each model', async () => {
+    const first = modelFrom([{ status: 429 }]);
+    const second = modelFrom([{ text: JSON.stringify(VALID) }]);
+    const recorded: AiUsageInput[] = [];
+    const result = await generateBuyerSetup(INPUT, {
+      resolveModel: (attempt) =>
+        attempt === 1
+          ? { model: first.model, modelId: 'groq-model' }
+          : { model: second.model, modelId: 'gemini-model' },
+      recordUsage: async (row) => {
+        recorded.push(row);
+      },
+      retry: { delaysMs: [60_000, 60_000], random: () => 0 },
+    });
+    expect(result).toMatchObject({ ok: true, modelId: 'gemini-model' });
+    expect(recorded.map((r) => [r.attempt, r.outcome, r.model])).toEqual([
+      [1, 'retry', 'groq-model'],
+      [2, 'success', 'gemini-model'],
+    ]);
+  });
 });

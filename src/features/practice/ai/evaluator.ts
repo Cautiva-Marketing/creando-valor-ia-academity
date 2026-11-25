@@ -1,7 +1,7 @@
 import 'server-only';
 import { generateText, NoObjectGeneratedError, NoOutputGeneratedError, Output } from 'ai';
 import { AI_TASK_CONFIG, callSettingsFor } from '@/lib/ai/config';
-import { getModel, type ResolvedModel } from '@/lib/ai/provider';
+import { failoverWait, modelForAttempt, type ResolvedModel } from '@/lib/ai/provider';
 import { isRetryableAiError, RetryFailure, withRetry, type RetryOptions } from '@/lib/ai/retry';
 import { recordAiUsage, type AiUsageInput } from '@/lib/ai/usage';
 import { buildEvaluatorPrompt, type EvaluationClaim } from './evaluator-input';
@@ -23,7 +23,8 @@ export type EvaluatorResult =
   | { ok: false; failureCode: EvaluatorFailureCode; modelId: string };
 
 export interface EvaluatorDeps {
-  resolveModel?: () => ResolvedModel;
+  /** Model of attempt n (default: the task's chain, src/lib/ai/provider.ts). */
+  resolveModel?: (attempt: number) => ResolvedModel;
   recordUsage?: (row: AiUsageInput) => Promise<void>;
   retry?: Pick<RetryOptions, 'delaysMs' | 'random' | 'budgetMs'>;
   timeoutMs?: number;
@@ -55,7 +56,10 @@ export async function runEvaluator(
   claim: EvaluationClaim,
   deps: EvaluatorDeps = {},
 ): Promise<EvaluatorResult> {
-  const { model, modelId } = (deps.resolveModel ?? (() => getModel('evaluator')))();
+  const resolve = deps.resolveModel ?? ((attempt: number) => modelForAttempt('evaluator', attempt));
+  // Model used by each attempt: usage rows and the result name the model that actually ran.
+  const models = new Map<number, string>();
+  const modelOf = (attempt: number) => models.get(attempt) ?? resolve(attempt).modelId;
   const record = deps.recordUsage ?? recordAiUsage;
   const now = deps.now ?? Date.now;
   const timeoutMs = deps.timeoutMs ?? AI_TASK_CONFIG.evaluator.timeoutMs;
@@ -74,7 +78,7 @@ export async function runEvaluator(
     simulationId: claim.session.id,
     organizationId: claim.session.organizationId,
     userId: claim.session.userId,
-    model: modelId,
+    model: modelOf(attempt),
     latencyMs: latencies.get(attempt) ?? 0,
     outcome,
     attempt,
@@ -83,8 +87,10 @@ export async function runEvaluator(
   });
 
   try {
-    const { value } = await withRetry(
+    const { value, attempts } = await withRetry(
       async (attempt) => {
+        const { model, modelId } = resolve(attempt);
+        models.set(attempt, modelId);
         const startedAt = performance.now();
         try {
           const result = await generateText({
@@ -113,6 +119,7 @@ export async function runEvaluator(
         delaysMs: deps.retry?.delaysMs,
         random: deps.retry?.random,
         budgetMs,
+        waitMsFor: failoverWait(resolve),
         isRetryable: (error) => !isInvalidOutput(error) && isRetryableAiError(error),
         // Another attempt only while at least a second remains before the deadline.
         shouldRetry: () => usableUntil - now() > 1_000,
@@ -121,10 +128,19 @@ export async function runEvaluator(
         },
       },
     );
-    return { ok: true, output: value, modelId, promptVersion: EVALUATOR_PROMPT_VERSION };
+    return {
+      ok: true,
+      output: value,
+      modelId: modelOf(attempts),
+      promptVersion: EVALUATOR_PROMPT_VERSION,
+    };
   } catch (error) {
     if (!(error instanceof RetryFailure)) throw error;
     await record(usageRow(error.attempts, 'failure'));
-    return { ok: false, failureCode: failureCodeOf(error.lastError), modelId };
+    return {
+      ok: false,
+      failureCode: failureCodeOf(error.lastError),
+      modelId: modelOf(error.attempts),
+    };
   }
 }

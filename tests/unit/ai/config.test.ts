@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AI_TASK_CONFIG, callSettingsFor, modelIdFor } from '@/lib/ai/config';
+import { AI_TASK_CONFIG, callSettingsFor, modelChainFor, parseModelChain } from '@/lib/ai/config';
 import { estimateCostUsd } from '@/lib/ai/pricing';
+import { parseAiEnv } from '@/lib/env';
 
 /** T027 (research.md §R2): per-task parameters, model ids from env and list pricing. */
 
@@ -19,17 +20,61 @@ describe('AI task configuration', () => {
       temperature: AI_TASK_CONFIG.buyer.temperature,
       maxOutputTokens: AI_TASK_CONFIG.buyer.maxOutputTokens,
       maxRetries: 0,
-      providerOptions: { google: { thinkingConfig: { thinkingLevel: 'minimal' } } },
+      providerOptions: {
+        google: { thinkingConfig: { thinkingLevel: 'minimal' } },
+        // Groq: JSON schema without strict mode (the setup schema has an optional field).
+        groq: { reasoningEffort: 'low', structuredOutputs: true, strictJsonSchema: false },
+      },
     });
   });
 
-  it('reads model ids from env per task', () => {
-    vi.stubEnv('AI_MODEL_BUYER', 'modelo-cliente');
-    vi.stubEnv('AI_MODEL_EVALUATOR', 'modelo-evaluador');
-    vi.stubEnv('AI_MODEL_BUYER_SETUP', '');
-    expect(modelIdFor('buyer')).toBe('modelo-cliente');
-    expect(modelIdFor('evaluator')).toBe('modelo-evaluador');
-    expect(modelIdFor('buyer_setup')).toBe('gemini-3.6-flash');
+  it('gives the evaluator a deliberate Groq reasoning effort and a strict schema', () => {
+    // Without strict mode gpt-oss ignored enums (e.g. a criterion key as the drill stage).
+    expect(callSettingsFor('evaluator').providerOptions.groq).toMatchObject({
+      reasoningEffort: 'medium',
+      strictJsonSchema: true,
+    });
+    // The setup schema has an optional field: strict mode would reject it.
+    expect(callSettingsFor('buyer_setup').providerOptions.groq.strictJsonSchema).toBe(false);
+  });
+});
+
+describe('model chains (pilot on free tiers: Gemini + Groq failover)', () => {
+  it('parses provider:model entries; a bare id is Google', () => {
+    expect(parseModelChain('gemini-3.5-flash-lite')).toEqual([
+      { provider: 'google', modelId: 'gemini-3.5-flash-lite' },
+    ]);
+    expect(parseModelChain(' groq:openai/gpt-oss-120b , google:gemini-3.6-flash ')).toEqual([
+      { provider: 'groq', modelId: 'openai/gpt-oss-120b' },
+      { provider: 'google', modelId: 'gemini-3.6-flash' },
+    ]);
+  });
+
+  it('rejects unknown providers and empty entries', () => {
+    expect(() => parseModelChain('openai:gpt-5')).toThrow(/openai/);
+    expect(() => parseModelChain('google:gemini-3.6-flash,,')).toThrow(/empty/);
+    expect(() => parseModelChain('groq:')).toThrow(/empty/);
+  });
+
+  it('reads the chain per task from env and keeps only providers with a key', () => {
+    const base = {
+      GOOGLE_GENERATIVE_AI_API_KEY: 'AIza-test',
+      AI_MODEL_EVALUATOR: 'groq:openai/gpt-oss-120b,google:gemini-3.6-flash',
+    };
+    expect(modelChainFor('evaluator', parseAiEnv(base))).toEqual([
+      { provider: 'google', modelId: 'gemini-3.6-flash' },
+    ]);
+    expect(modelChainFor('evaluator', parseAiEnv({ ...base, GROQ_API_KEY: 'gsk_test' }))).toEqual([
+      { provider: 'groq', modelId: 'openai/gpt-oss-120b' },
+      { provider: 'google', modelId: 'gemini-3.6-flash' },
+    ]);
+  });
+
+  it('defaults: Groq first for setup and evaluation, Gemini first for streamed turns', () => {
+    const env = parseAiEnv({ GOOGLE_GENERATIVE_AI_API_KEY: 'AIza-test', GROQ_API_KEY: 'gsk_test' });
+    expect(modelChainFor('buyer', env).map((m) => m.provider)).toEqual(['google', 'groq']);
+    expect(modelChainFor('buyer_setup', env).map((m) => m.provider)).toEqual(['groq', 'google']);
+    expect(modelChainFor('evaluator', env).map((m) => m.provider)).toEqual(['groq', 'google']);
   });
 });
 
@@ -48,5 +93,10 @@ describe('estimateCostUsd', () => {
   it('costs nothing for fake models and unknown models fall back to the flash price', () => {
     expect(estimateCostUsd('fake-buyer', 1000, 1000)).toBe(0);
     expect(estimateCostUsd('modelo-nuevo', 1_000_000, 0)).toBe(1.5);
+  });
+
+  it('prices the Groq models', () => {
+    expect(estimateCostUsd('openai/gpt-oss-120b', 1_000_000, 1_000_000)).toBe(0.75);
+    expect(estimateCostUsd('openai/gpt-oss-20b', 1_000_000, 1_000_000)).toBe(0.375);
   });
 });

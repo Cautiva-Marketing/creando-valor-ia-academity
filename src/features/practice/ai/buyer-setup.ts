@@ -1,7 +1,7 @@
 import 'server-only';
 import { generateText, NoObjectGeneratedError, NoOutputGeneratedError, Output } from 'ai';
 import { AI_TASK_CONFIG, callSettingsFor } from '@/lib/ai/config';
-import { getModel, type ResolvedModel } from '@/lib/ai/provider';
+import { failoverWait, modelForAttempt, type ResolvedModel } from '@/lib/ai/provider';
 import { isRetryableAiError, RetryFailure, withRetry, type RetryOptions } from '@/lib/ai/retry';
 import { recordAiUsage, type AiUsageInput } from '@/lib/ai/usage';
 import type { Database } from '@/lib/supabase/database.types';
@@ -55,7 +55,8 @@ export type BuyerSetupResult =
   | { ok: false; failureCode: BuyerSetupFailureCode };
 
 export interface BuyerSetupDeps {
-  resolveModel?: () => ResolvedModel;
+  /** Model of attempt n (default: the task's chain, src/lib/ai/provider.ts). */
+  resolveModel?: (attempt: number) => ResolvedModel;
   recordUsage?: (row: AiUsageInput) => Promise<void>;
   retry?: Pick<RetryOptions, 'delaysMs' | 'random' | 'budgetMs'>;
 }
@@ -114,7 +115,11 @@ export async function generateBuyerSetup(
   input: BuyerSetupInput,
   deps: BuyerSetupDeps = {},
 ): Promise<BuyerSetupResult> {
-  const { model, modelId } = (deps.resolveModel ?? (() => getModel('buyer_setup')))();
+  const resolve =
+    deps.resolveModel ?? ((attempt: number) => modelForAttempt('buyer_setup', attempt));
+  // Model used by each attempt: usage rows and the result name the model that actually ran.
+  const models = new Map<number, string>();
+  const modelOf = (attempt: number) => models.get(attempt) ?? resolve(attempt).modelId;
   const record = deps.recordUsage ?? recordAiUsage;
   const system = BUYER_SETUP_PROMPT.text;
   const prompt = buildBuyerSetupPrompt(input);
@@ -129,7 +134,7 @@ export async function generateBuyerSetup(
     task: 'buyer_setup',
     organizationId: input.organizationId,
     userId: input.userId,
-    model: modelId,
+    model: modelOf(attempt),
     latencyMs: latencies.get(attempt) ?? 0,
     outcome,
     attempt,
@@ -138,8 +143,10 @@ export async function generateBuyerSetup(
   });
 
   try {
-    const { value } = await withRetry(
+    const { value, attempts } = await withRetry(
       async (attempt) => {
+        const { model, modelId } = resolve(attempt);
+        models.set(attempt, modelId);
         const startedAt = performance.now();
         try {
           const result = await generateText({
@@ -173,13 +180,19 @@ export async function generateBuyerSetup(
       },
       {
         ...deps.retry,
+        waitMsFor: failoverWait(resolve),
         isRetryable: (error) => isRetryableAiError(error) || isInvalidOutput(error),
         onRetry: (attempt) => {
           void record(usageRow(attempt, 'retry'));
         },
       },
     );
-    return { ok: true, output: value, promptVersion: promptRef(BUYER_SETUP_PROMPT), modelId };
+    return {
+      ok: true,
+      output: value,
+      promptVersion: promptRef(BUYER_SETUP_PROMPT),
+      modelId: modelOf(attempts),
+    };
   } catch (error) {
     if (!(error instanceof RetryFailure)) throw error;
     await record(usageRow(error.attempts, 'failure'));

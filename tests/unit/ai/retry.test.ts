@@ -1,15 +1,16 @@
 import { APICallError } from 'ai';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { isRetryableAiError, RetryFailure, withRetry } from '@/lib/ai/retry';
+import { isRetryableAiError, retryAfterMs, RetryFailure, withRetry } from '@/lib/ai/retry';
 
 /** research.md §R5, FR-058: 3 attempts in total, 1 s and 3 s waits with jitter, only 429/5xx/timeout. */
 
-function apiError(statusCode: number) {
+function apiError(statusCode: number, responseHeaders?: Record<string, string>) {
   return new APICallError({
     message: `status ${statusCode}`,
     url: 'https://example.test',
     requestBodyValues: {},
     statusCode,
+    responseHeaders,
   });
 }
 
@@ -33,6 +34,17 @@ describe('isRetryableAiError', () => {
       lastError: apiError(429),
     });
     expect(isRetryableAiError(wrapper)).toBe(true);
+  });
+});
+
+describe('retryAfterMs', () => {
+  it('reads the retry-after header in seconds (Groq sends it on 429), capped at 60 s', () => {
+    expect(retryAfterMs(apiError(429, { 'retry-after': '13' }))).toBe(13_000);
+    expect(retryAfterMs(apiError(429, { 'retry-after': '1.5' }))).toBe(1_500);
+    expect(retryAfterMs(apiError(429, { 'retry-after': '600' }))).toBe(60_000);
+    expect(retryAfterMs(apiError(429))).toBe(0);
+    expect(retryAfterMs(apiError(429, { 'retry-after': 'soon' }))).toBe(0);
+    expect(retryAfterMs(new Error('x'))).toBe(0);
   });
 });
 
@@ -104,5 +116,31 @@ describe('withRetry', () => {
     });
     const error = await withRetry(fn, { shouldRetry: () => false }).catch((e: unknown) => e);
     expect(error).toMatchObject({ attempts: 1 });
+  });
+
+  it('does not wait when the next attempt fails over to another model (waitMsFor)', async () => {
+    const onRetry = vi.fn();
+    const fn = vi
+      .fn<(attempt: number) => Promise<string>>()
+      .mockRejectedValueOnce(apiError(429))
+      .mockResolvedValueOnce('ok');
+    // Attempt 2 runs on a different provider: no backoff needed.
+    const result = await withRetry(fn, {
+      onRetry,
+      waitMsFor: (next, base) => (next === 2 ? 0 : base),
+    });
+    expect(result).toEqual({ value: 'ok', attempts: 2, waitedMs: 0 });
+    expect(onRetry).toHaveBeenCalledWith(1, 0, expect.anything());
+  });
+
+  it('passes the failed error to waitMsFor', async () => {
+    const error = apiError(429, { 'retry-after': '2' });
+    const waitMsFor = vi.fn(() => 0);
+    const fn = vi
+      .fn<(attempt: number) => Promise<string>>()
+      .mockRejectedValueOnce(error)
+      .mockResolvedValueOnce('ok');
+    await withRetry(fn, { waitMsFor });
+    expect(waitMsFor).toHaveBeenCalledWith(2, expect.any(Number), error);
   });
 });

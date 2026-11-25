@@ -11,6 +11,9 @@ importers:
       '@ai-sdk/google':
         specifier: 3.0.149
         version: 3.0.149(zod@4.6.7)
+      '@ai-sdk/groq':
+        specifier: 3.0.84
+        version: 3.0.84(zod@4.6.7)
       '@react-email/render':
         specifier: 2.3.1
         version: 2.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -146,6 +149,12 @@ packages:
 
   '@ai-sdk/google@3.0.149':
     resolution: {integrity: sha512-GQLv70nGTuNT7Y0y5iIaG9TosRMqdXygFNh/QV59TuaOUxoylBaAeK/h3LHAOyCOBEN51Sz7LlPTwG2Nc4RADA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/groq@3.0.84':
+    resolution: {integrity: sha512-A6/gGZyLDscHJX+vm7VDMbUnjhcjK64YqGj2m0nHOK1Szjib4kpl7+G1xpNkEAkFTsPLjb+rj7ABUzvQ9z/YQw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -5179,6 +5188,12 @@ snapshots:
       zod: 4.6.7
 
   '@ai-sdk/google@3.0.149(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.19
+      '@ai-sdk/provider-utils': 4.0.67(zod@4.6.7)
+      zod: 4.6.7
+
+  '@ai-sdk/groq@3.0.84(zod@4.6.7)':
     dependencies:
       '@ai-sdk/provider': 3.0.19
       '@ai-sdk/provider-utils': 4.0.67(zod@4.6.7)

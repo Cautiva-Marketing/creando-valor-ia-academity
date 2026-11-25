@@ -11,6 +11,9 @@ interface ModelPrice {
 }
 
 const PRICES: Record<string, ModelPrice> = {
+  // Groq on-demand (console.groq.com/docs/models, checked 2026-11-25).
+  'openai/gpt-oss-120b': { inputPerMillion: 0.15, outputPerMillion: 0.6 },
+  'openai/gpt-oss-20b': { inputPerMillion: 0.075, outputPerMillion: 0.3 },
   'gemini-3.8-flash': { inputPerMillion: 1.5, outputPerMillion: 7.5 },
   'gemini-3.6-flash': { inputPerMillion: 1.5, outputPerMillion: 7.5 },
   'gemini-3.5-flash-lite': { inputPerMillion: 0.3, outputPerMillion: 2.5 },

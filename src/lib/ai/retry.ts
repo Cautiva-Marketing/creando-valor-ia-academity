@@ -19,6 +19,11 @@ export interface RetryOptions {
   /** Extra condition (e.g. "no chunk has been sent yet"). */
   shouldRetry?: (error: unknown, attempt: number) => boolean;
   onRetry?: (attempt: number, waitMs: number, error: unknown) => void;
+  /**
+   * Wait before attempt `nextAttempt` given the backoff `baseMs` (with jitter). The model chain
+   * returns 0 when the next attempt runs on another model: failing over needs no backoff.
+   */
+  waitMsFor?: (nextAttempt: number, baseMs: number, error: unknown) => number;
   random?: () => number;
   now?: () => number;
 }
@@ -63,6 +68,20 @@ export function isRetryableAiError(error: unknown): boolean {
   return false;
 }
 
+const MAX_RETRY_AFTER_MS = 60_000;
+
+/**
+ * Wait requested by the provider in the `retry-after` header (seconds), e.g. Groq on a tokens-per-
+ * minute 429. 0 when absent or unreadable; capped at 60 s.
+ */
+export function retryAfterMs(error: unknown): number {
+  const inner = unwrap(error);
+  if (!APICallError.isInstance(inner)) return 0;
+  const seconds = Number(inner.responseHeaders?.['retry-after']);
+  if (!Number.isFinite(seconds) || seconds <= 0) return 0;
+  return Math.min(MAX_RETRY_AFTER_MS, Math.ceil(seconds * 1000));
+}
+
 export function statusOf(error: unknown): number | undefined {
   const inner = unwrap(error);
   return APICallError.isInstance(inner) ? inner.statusCode : undefined;
@@ -82,6 +101,7 @@ export async function withRetry<T>(
     isRetryable = isRetryableAiError,
     shouldRetry = () => true,
     onRetry,
+    waitMsFor = (_next: number, baseMs: number) => baseMs,
     random = Math.random,
     now = Date.now,
   } = options;
@@ -98,12 +118,12 @@ export async function withRetry<T>(
         throw new RetryFailure(error, attempt, waitedMs, retryable);
       }
       const base = delaysMs[Math.min(attempt - 1, delaysMs.length - 1)] ?? 0;
-      const waitMs = Math.round(base * (1 + random() * jitterRatio));
+      const waitMs = waitMsFor(attempt + 1, Math.round(base * (1 + random() * jitterRatio)), error);
       if (now() - startedAt + waitMs > budgetMs) {
         throw new RetryFailure(error, attempt, waitedMs, retryable);
       }
       onRetry?.(attempt, waitMs, error);
-      await sleep(waitMs);
+      if (waitMs > 0) await sleep(waitMs);
       waitedMs += waitMs;
     }
   }

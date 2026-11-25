@@ -353,4 +353,106 @@ describe('runBuyerTurn', () => {
     const fallback = await run([{ text: bad }]);
     expect(fallback.incidents).toEqual(['meta_fallback']);
   });
+
+  it('generates the turn in one piece on models without structured streaming (Groq)', async () => {
+    const reply = 'Hola, ¿qué incluye exactamente el precio?';
+    const model = new MockLanguageModelV3({
+      doGenerate: async () => ({
+        content: [{ type: 'text', text: json(reply) }],
+        finishReason: { unified: 'stop', raw: 'stop' },
+        usage: {
+          inputTokens: { total: 90, noCache: 90, cacheRead: undefined, cacheWrite: undefined },
+          outputTokens: { total: 20, text: 20, reasoning: undefined },
+        },
+        warnings: [],
+      }),
+    });
+    const { events, result, usage } = await run([], {
+      resolveModel: () => ({
+        model,
+        modelId: 'openai/gpt-oss-120b',
+        streamsStructuredOutput: false,
+      }),
+    });
+    expect(events).toEqual([{ type: 'delta', text: reply }]);
+    expect(result).toMatchObject({ ok: true, reply, metaStatus: 'valid' });
+    expect(usage).toEqual([
+      expect.objectContaining({
+        outcome: 'success',
+        model: 'openai/gpt-oss-120b',
+        inputTokens: 90,
+      }),
+    ]);
+    expect(usage[0]!.firstChunkMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('fails over from a 429 on Gemini to Groq without waiting', async () => {
+    const reply = 'Cuénteme más, por favor.';
+    const groq = new MockLanguageModelV3({
+      doGenerate: async () => ({
+        content: [{ type: 'text', text: json(reply) }],
+        finishReason: { unified: 'stop', raw: 'stop' },
+        usage: {
+          inputTokens: { total: 90, noCache: 90, cacheRead: undefined, cacheWrite: undefined },
+          outputTokens: { total: 20, text: 20, reasoning: undefined },
+        },
+        warnings: [],
+      }),
+    });
+    const gemini = modelFrom([{ status: 429 }]);
+    const { events, result, usage, waits } = await run([], {
+      resolveModel: (attempt) =>
+        attempt === 1
+          ? { model: gemini.model, modelId: 'gemini-3.5-flash-lite' }
+          : { model: groq, modelId: 'openai/gpt-oss-120b', streamsStructuredOutput: false },
+    });
+    expect(events).toEqual([
+      { type: 'retrying', attempt: 2, waitMs: 0 },
+      { type: 'delta', text: reply },
+    ]);
+    expect(waits).toEqual([]);
+    expect(result).toMatchObject({ ok: true, reply, providerWaitMs: 0 });
+    expect(usage.map((r) => [r.outcome, r.model])).toEqual([
+      ['retry', 'gemini-3.5-flash-lite'],
+      ['success', 'openai/gpt-oss-120b'],
+    ]);
+  });
+
+  it('waits the retry-after the provider asks for before calling the same model again', async () => {
+    const reply = 'Ya, cuénteme.';
+    let calls = 0;
+    const model = new MockLanguageModelV3({
+      doGenerate: async () => {
+        if (calls++ === 0) {
+          throw new APICallError({
+            message: 'tokens per minute',
+            url: 'mock://',
+            requestBodyValues: {},
+            statusCode: 429,
+            responseHeaders: { 'retry-after': '4' },
+          });
+        }
+        return {
+          content: [{ type: 'text', text: json(reply) }],
+          finishReason: { unified: 'stop', raw: 'stop' },
+          usage: {
+            inputTokens: { total: 90, noCache: 90, cacheRead: undefined, cacheWrite: undefined },
+            outputTokens: { total: 20, text: 20, reasoning: undefined },
+          },
+          warnings: [],
+        };
+      },
+    });
+    const { result, waits } = await run([], {
+      resolveModel: () => ({
+        model,
+        modelId: 'openai/gpt-oss-120b',
+        streamsStructuredOutput: false,
+      }),
+    });
+    expect(result).toMatchObject({ ok: true, reply });
+    expect(waits).toHaveLength(1);
+    expect(waits[0]).toBeGreaterThan(3_900);
+    expect(waits[0]).toBeLessThanOrEqual(4_000);
+  });
 });

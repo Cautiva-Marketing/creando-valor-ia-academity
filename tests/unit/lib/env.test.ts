@@ -53,6 +53,23 @@ describe('aiEnv (002 research.md §R2)', () => {
     ).toThrow(/AI_PROVIDER/);
   });
 
+  it('accepts Groq alone and fails only when a task has no usable model', () => {
+    // Defaults chain Groq and Gemini for every task: either key is enough.
+    expect(parseAiEnv({ GROQ_API_KEY: 'gsk_test' }).GROQ_API_KEY).toBe('gsk_test');
+    expect(() =>
+      parseAiEnv({
+        GOOGLE_GENERATIVE_AI_API_KEY: 'AIza-test',
+        AI_MODEL_BUYER: 'groq:openai/gpt-oss-20b',
+      }),
+    ).toThrow(/AI_MODEL_BUYER.*GROQ_API_KEY/);
+  });
+
+  it('rejects malformed model chains', () => {
+    expect(() =>
+      parseAiEnv({ GOOGLE_GENERATIVE_AI_API_KEY: 'k', AI_MODEL_EVALUATOR: 'mistral:large' }),
+    ).toThrow(/AI_MODEL_EVALUATOR/);
+  });
+
   it('rejects unknown providers', () => {
     expect(() =>
       parseAiEnv({ AI_PROVIDER: 'openai', GOOGLE_GENERATIVE_AI_API_KEY: 'k' }),

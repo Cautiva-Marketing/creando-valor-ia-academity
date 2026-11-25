@@ -1,5 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
+import { parseModelChain, PROVIDER_KEY_VARS, usableEntries, type ModelRef } from './ai/model-chain';
 
 /**
  * Server-only configuration (research.md §R22). Never import from a Client Component.
@@ -71,10 +72,25 @@ const aiSchema = z
   .object({
     AI_PROVIDER: z.enum(['google', 'fake']).default('google'),
     GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
-    // Verified with the spike (T003, research.md §R4). The 2.5 family is closed to new projects.
-    AI_MODEL_BUYER_SETUP: z.string().min(1).max(100).default('gemini-3.6-flash'),
-    AI_MODEL_BUYER: z.string().min(1).max(100).default('gemini-3.5-flash-lite'),
-    AI_MODEL_EVALUATOR: z.string().min(1).max(100).default('gemini-3.6-flash'),
+    GROQ_API_KEY: z.string().min(1).optional(),
+    // Model chains `provider:model,…` (src/lib/ai/model-chain.ts), tried in order on 429/5xx. Pilot
+    // on free tiers (research.md §R16): Gemini streams the buyer turns; Groq (1 000 requests/day per
+    // model) carries setup and evaluation, where Gemini allows only 20 per day.
+    AI_MODEL_BUYER_SETUP: z
+      .string()
+      .min(1)
+      .max(300)
+      .default('groq:openai/gpt-oss-120b,google:gemini-3.6-flash'),
+    AI_MODEL_BUYER: z
+      .string()
+      .min(1)
+      .max(300)
+      .default('google:gemini-3.5-flash-lite,groq:openai/gpt-oss-120b'),
+    AI_MODEL_EVALUATOR: z
+      .string()
+      .min(1)
+      .max(300)
+      .default('groq:openai/gpt-oss-120b,google:gemini-3.6-flash'),
     NODE_ENV: z.string().optional(),
     VERCEL_ENV: z.string().optional(),
     E2E: z.string().optional(),
@@ -90,12 +106,36 @@ const aiSchema = z
           message: 'AI_PROVIDER=fake is test-only and must not be used in production',
         });
       }
-    } else if (!env.GOOGLE_GENERATIVE_AI_API_KEY) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['GOOGLE_GENERATIVE_AI_API_KEY'],
-        message: 'GOOGLE_GENERATIVE_AI_API_KEY is required when AI_PROVIDER=google',
-      });
+      return;
+    }
+    // Real providers: every task needs at least one chain entry whose provider has a key.
+    const keys = { google: env.GOOGLE_GENERATIVE_AI_API_KEY, groq: env.GROQ_API_KEY };
+    for (const variable of [
+      'AI_MODEL_BUYER_SETUP',
+      'AI_MODEL_BUYER',
+      'AI_MODEL_EVALUATOR',
+    ] as const) {
+      let chain: ModelRef[];
+      try {
+        chain = parseModelChain(env[variable]);
+      } catch (error) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [variable],
+          message: `${variable}: ${(error as Error).message}`,
+        });
+        continue;
+      }
+      if (usableEntries(chain, keys).length === 0) {
+        const needed = [...new Set(chain.map((ref) => PROVIDER_KEY_VARS[ref.provider]))].join(
+          ' or ',
+        );
+        ctx.addIssue({
+          code: 'custom',
+          path: [variable],
+          message: `${variable} has no usable model: set ${needed}`,
+        });
+      }
     }
   });
 
@@ -107,6 +147,7 @@ function aiInput(env: Record<string, string | undefined>) {
   return {
     AI_PROVIDER: nonEmpty(env.AI_PROVIDER),
     GOOGLE_GENERATIVE_AI_API_KEY: nonEmpty(env.GOOGLE_GENERATIVE_AI_API_KEY),
+    GROQ_API_KEY: nonEmpty(env.GROQ_API_KEY),
     AI_MODEL_BUYER_SETUP: nonEmpty(env.AI_MODEL_BUYER_SETUP),
     AI_MODEL_BUYER: nonEmpty(env.AI_MODEL_BUYER),
     AI_MODEL_EVALUATOR: nonEmpty(env.AI_MODEL_EVALUATOR),
