@@ -1,0 +1,90 @@
+{
+  "id": "11-b2b-limite-tiempo",
+  "description": "Servicios B2B, dificultad 3: buen inicio y se acaba el tiempo antes de cerrar.",
+  "session": {
+    "difficulty": 3,
+    "focusStage": null,
+    "endReason": "time_limit"
+  },
+  "scenario": {
+    "buyer": {
+      "name": "Raúl Benites",
+      "age": 47,
+      "occupation": "Jefe de mantenimiento",
+      "intro": "Mantiene la flota de montacargas de una planta.",
+      "goal": "Agendar una visita técnica",
+      "motivation": "Evitar paradas no programadas.",
+      "personality": "Técnico y detallista."
+    },
+    "revealables": [
+      {
+        "key": "budget",
+        "value": "S/ 6 000 al mes"
+      },
+      {
+        "key": "timeline",
+        "value": "Antes de la auditoría de marzo"
+      },
+      {
+        "key": "decision_maker",
+        "value": "Su gerente de planta"
+      }
+    ],
+    "visibleObjection": "Nuestro técnico interno lo resuelve.",
+    "hiddenObjections": [
+      {
+        "id": "h1",
+        "text": "Tuvo un mal servicio de otro proveedor."
+      }
+    ],
+    "product": {
+      "version": 1,
+      "sector": "b2b_services",
+      "name": "Mantenimiento Preventivo Pro",
+      "description": "Mantenimiento preventivo de montacargas en planta.",
+      "priceKind": "range",
+      "priceMin": 3000,
+      "priceMax": 9000,
+      "benefits": ["Visitas programadas", "Repuestos originales"],
+      "differentiators": ["Respuesta en 4 horas"],
+      "verifiableFacts": ["25 plantas atendidas en Lima"]
+    }
+  },
+  "transcript": [
+    {
+      "seq": 1,
+      "author": "buyer",
+      "content": "Nuestro técnico interno lo resuelve."
+    },
+    {
+      "seq": 2,
+      "author": "seller",
+      "content": "Buenos días Raúl, soy Sofía. Qué bueno contar con un técnico. ¿Cuántas paradas no programadas tuvieron este año?"
+    },
+    {
+      "seq": 3,
+      "author": "buyer",
+      "content": "Unas seis, cada una nos costó un turno."
+    },
+    {
+      "seq": 4,
+      "author": "seller",
+      "content": "¿Qué pasó en esas paradas y qué impacto tuvo en la producción?"
+    },
+    {
+      "seq": 5,
+      "author": "buyer",
+      "content": "Fallas hidráulicas; perdimos pedidos."
+    }
+  ],
+  "expect": {
+    "criteria": {
+      "first_impression": [6, 10],
+      "diagnosis": [12, 20],
+      "active_listening": [6, 10],
+      "objection_handling": [5, 12]
+    },
+    "noEvaluable": ["value_argument", "negotiation_close", "follow_up"],
+    "flags": []
+  }
+}

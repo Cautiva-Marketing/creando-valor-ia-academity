@@ -17,6 +17,8 @@
   --color-success: var(--success);
   --color-on-success: var(--on-success);
   --color-warning: var(--warning);
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
   --color-on-warning: var(--on-warning);
   --color-danger: var(--danger);
   --color-on-danger: var(--on-danger);

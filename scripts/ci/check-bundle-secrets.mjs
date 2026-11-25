@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Fails if any server secret reaches the client bundle (.next/static), research.md §R22.
- * Looks for the literal values of the secret env vars (when set) and the `sb_secret_` key pattern.
+ * Looks for the literal values of the secret env vars (when set), the `sb_secret_` key pattern and
+ * the Google API key pattern (`AIza…`, 002).
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -13,8 +14,12 @@ const SECRET_VARS = [
   'SMTP_PASS',
   'RATE_LIMIT_PEPPER',
   'SEND_EMAIL_HOOK_SECRET',
+  // 002: Gemini key and internal dispatcher secret (plan.md → Constitution Check, Principle II)
+  'GOOGLE_GENERATIVE_AI_API_KEY',
+  'PRACTICE_DISPATCH_SECRET',
 ];
-const PATTERNS = [/sb_secret_[A-Za-z0-9_-]{8,}/];
+// `AIza…` is the shape of a Google API key.
+const PATTERNS = [/sb_secret_[A-Za-z0-9_-]{8,}/, /AIza[0-9A-Za-z_-]{35}/];
 
 if (!existsSync(STATIC_DIR)) {
   console.error('check-bundle-secrets: .next/static not found — run `pnpm build` first.');

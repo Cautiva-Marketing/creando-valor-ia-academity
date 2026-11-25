@@ -27,6 +27,11 @@ export interface AuditDataByAction {
   'organization.reactivated': { previous_reason: string | null };
   'access_request.converted': { invitation_id: string };
   'access_request.discarded': { automatic: boolean };
+  // 002: written by set_product_status in SQL (ids only, never product content).
+  'product.archived': Record<string, never>;
+  'product.reactivated': Record<string, never>;
+  // 002: written by delete_objection in SQL.
+  'objection.deleted': { product_id: string };
 }
 
 export type AuditAction = keyof AuditDataByAction;

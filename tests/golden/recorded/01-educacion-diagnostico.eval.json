@@ -1,0 +1,83 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 9,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Te presentaste y validaste la falta de tiempo antes de ofrecer.",
+      "improvement": "Mantén ese saludo cálido.",
+      "confidence": 0.9
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 17,
+      "max_score": 20,
+      "evidence_message_ids": ["m2", "m4"],
+      "justification": "Preguntaste por su semana, su objetivo y su plazo.",
+      "improvement": "Indaga también el presupuesto.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 8,
+      "max_score": 10,
+      "evidence_message_ids": ["m6"],
+      "justification": "Conectaste las clases grabadas con su cansancio.",
+      "improvement": "Resume lo que te dijo antes de proponer.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "evaluated",
+      "score": 16,
+      "max_score": 20,
+      "evidence_message_ids": ["m6", "m8"],
+      "justification": "Usaste beneficios y un dato verificable.",
+      "improvement": "Cuantifica el beneficio para su ascenso.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 12,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Respondiste la objeción de tiempo con la mentoría.",
+      "improvement": "Confirma que la objeción quedó resuelta.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "evaluated",
+      "score": 13,
+      "max_score": 15,
+      "evidence_message_ids": ["m8"],
+      "justification": "Propusiste un siguiente paso concreto y de bajo riesgo.",
+      "improvement": "Mantén propuestas concretas.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "evaluated",
+      "score": 9,
+      "max_score": 10,
+      "evidence_message_ids": ["m10"],
+      "justification": "Acordaste el envío y un contacto con fecha.",
+      "improvement": "Confirma el canal preferido.",
+      "confidence": 0.85
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Diagnosticaste antes de ofrecer.", "Cerraste con un siguiente paso claro."],
+  "improvements": ["Indaga el presupuesto antes de cerrar."],
+  "suggested_drill": {
+    "text": "Practica una pregunta abierta sobre presupuesto en tus primeros tres mensajes.",
+    "stage": "conoce"
+  },
+  "ethical_flags": []
+}

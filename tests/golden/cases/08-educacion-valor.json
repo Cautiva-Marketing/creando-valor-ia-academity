@@ -1,0 +1,123 @@
+{
+  "id": "08-educacion-valor",
+  "description": "Educación, dificultad 2: argumentación de valor con datos y cierre logrado.",
+  "session": {
+    "difficulty": 2,
+    "focusStage": "aumenta",
+    "endReason": "goal_achieved"
+  },
+  "scenario": {
+    "buyer": {
+      "name": "Luis Huamán",
+      "age": 31,
+      "occupation": "Supervisor de almacén",
+      "intro": "Quiere crecer a jefe de logística.",
+      "goal": "Que se inscriba en el diplomado",
+      "motivation": "Un ascenso antes de fin de año.",
+      "personality": "Directo e impaciente."
+    },
+    "revealables": [
+      {
+        "key": "budget",
+        "value": "Hasta S/ 1 500"
+      },
+      {
+        "key": "timeline",
+        "value": "Empezar en enero"
+      },
+      {
+        "key": "decision_maker",
+        "value": "Él mismo"
+      }
+    ],
+    "visibleObjection": "Está caro.",
+    "hiddenObjections": [
+      {
+        "id": "h1",
+        "text": "Teme no tener tiempo los sábados."
+      }
+    ],
+    "product": {
+      "version": 1,
+      "sector": "education",
+      "name": "Diplomado en Gestión Logística",
+      "description": "Diplomado en línea de 16 semanas con clases los sábados.",
+      "priceKind": "fixed",
+      "priceMin": 1400,
+      "priceMax": 1400,
+      "benefits": ["Certificado universitario", "Clases grabadas"],
+      "differentiators": ["Docentes del sector retail"],
+      "verifiableFacts": ["85 % de egresados lo recomienda"]
+    }
+  },
+  "transcript": [
+    {
+      "seq": 1,
+      "author": "buyer",
+      "content": "Está caro el diplomado."
+    },
+    {
+      "seq": 2,
+      "author": "seller",
+      "content": "Hola Luis, soy Ana. Entiendo, es una inversión. ¿Qué te gustaría lograr al terminarlo?"
+    },
+    {
+      "seq": 3,
+      "author": "buyer",
+      "content": "Ser jefe de logística este año."
+    },
+    {
+      "seq": 4,
+      "author": "seller",
+      "content": "¿Y qué te pide tu empresa para ese puesto?"
+    },
+    {
+      "seq": 5,
+      "author": "buyer",
+      "content": "Un certificado en gestión logística."
+    },
+    {
+      "seq": 6,
+      "author": "seller",
+      "content": "El diplomado da un certificado universitario y el 85 % de egresados lo recomienda. Son S/ 1 400 en total: ¿cómo lo comparas con el aumento del puesto?"
+    },
+    {
+      "seq": 7,
+      "author": "buyer",
+      "content": "Visto así, vale la pena."
+    },
+    {
+      "seq": 8,
+      "author": "seller",
+      "content": "¿Te reservo una vacante para enero?"
+    },
+    {
+      "seq": 9,
+      "author": "buyer",
+      "content": "Sí, resérvame."
+    },
+    {
+      "seq": 10,
+      "author": "seller",
+      "content": "Hecho. Te envío la ficha hoy y te llamo el lunes para confirmar el pago."
+    },
+    {
+      "seq": 11,
+      "author": "buyer",
+      "content": "Gracias."
+    }
+  ],
+  "expect": {
+    "criteria": {
+      "first_impression": [6, 10],
+      "diagnosis": [12, 20],
+      "active_listening": [6, 10],
+      "value_argument": [12, 20],
+      "objection_handling": [9, 15],
+      "negotiation_close": [9, 15],
+      "follow_up": [6, 10]
+    },
+    "noEvaluable": [],
+    "flags": []
+  }
+}

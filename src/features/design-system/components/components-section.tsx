@@ -4,6 +4,7 @@ import { Inbox, MoreHorizontal, Plus, Settings, Trash2 } from 'lucide-react';
 import { useId, useState } from 'react';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { CautivaStrip } from '@/components/ui/cautiva-strip';
 import {
   BottomSheet,
   BottomSheetContent,
@@ -21,6 +22,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Chip } from '@/components/ui/chip';
 import { Combobox } from '@/components/ui/combobox';
 import {
   Dialog,
@@ -48,6 +50,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScoreRing } from '@/components/ui/score-ring';
+import { ScoreTrendChart } from '@/components/ui/score-trend-chart';
 import {
   Select,
   SelectContent,
@@ -484,6 +487,49 @@ function ThemePanel({ theme }: { theme: 'light' | 'dark' }) {
         <ScoreRing value={88} label="Puntaje de la simulación" size="sm" />
         <ScoreRing value={64} label="Puntaje del módulo" />
         <ScoreRing value={41} label="Puntaje de práctica" size="lg" />
+      </Demo>
+
+      <Demo component="chip" title="Chip (002)" className="flex-row flex-wrap">
+        <Chip>Pregunta por el plazo</Chip>
+        <Chip variant="soft">Resume su necesidad</Chip>
+        <Chip selected>Conoce</Chip>
+        <Chip selected={false}>Aumenta</Chip>
+      </Demo>
+
+      <Demo component="score-trend-chart" title="Gráfico de evolución (002)">
+        <ScoreTrendChart
+          title={`Evolución de ejemplo (${label})`}
+          points={[
+            { label: '3 nov', score: 54, detail: 'Lote en Lurín (v1)' },
+            { label: '10 nov', score: 66, detail: 'Lote en Lurín (v2)' },
+            { label: '17 nov', score: 72, detail: 'Kit de herramientas (v1)' },
+            { label: '24 nov', score: 81, detail: 'Lote en Lurín (v2)' },
+          ]}
+        />
+      </Demo>
+
+      <Demo component="cautiva-strip" title="Franja C.A.U.T.I.V.A.™ (002)">
+        <CautivaStrip
+          title={`Promedio por etapa (${label})`}
+          stages={[
+            { stage: 'conoce', label: 'Conoce', average: 82 },
+            { stage: 'aumenta', label: 'Aumenta', average: 64 },
+            { stage: 'une', label: 'Une', average: null },
+            { stage: 'transforma', label: 'Transforma', average: 64 },
+            { stage: 'innova', label: 'Innova', average: 71 },
+            { stage: 'vende', label: 'Vende', average: 77 },
+            { stage: 'asegura', label: 'Asegura', average: 90 },
+          ]}
+        />
+      </Demo>
+
+      <Demo component="highlight" title="Cita resaltada (token highlight, 002)">
+        <p className="max-w-prose self-end rounded-lg rounded-br-sm bg-highlight px-4 py-2 text-on-highlight ring-2 ring-accent">
+          ¿Qué es lo más importante para usted al elegir un lote?
+        </p>
+        <p className="text-sm text-text-muted">
+          Mensaje citado como evidencia en el resultado (FR-047), con “Volver al criterio”.
+        </p>
       </Demo>
 
       <Demo component="avatar" title="Avatar" className="flex-row flex-wrap items-center">

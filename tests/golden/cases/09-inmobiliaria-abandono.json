@@ -1,0 +1,92 @@
+{
+  "id": "09-inmobiliaria-abandono",
+  "description": "Inmobiliaria, dificultad 5: descortesía y presión que terminan en abandono.",
+  "session": {
+    "difficulty": 5,
+    "focusStage": null,
+    "endReason": "buyer_abandoned"
+  },
+  "scenario": {
+    "buyer": {
+      "name": "Elena Cárdenas",
+      "age": 60,
+      "occupation": "Docente jubilada",
+      "intro": "Busca un departamento pequeño cerca de su hija.",
+      "goal": "Agendar una visita al departamento",
+      "motivation": "Vivir cerca de su familia.",
+      "personality": "Muy desconfiada; necesita tiempo."
+    },
+    "revealables": [
+      {
+        "key": "budget",
+        "value": "S/ 280 000"
+      },
+      {
+        "key": "timeline",
+        "value": "En seis meses"
+      },
+      {
+        "key": "decision_maker",
+        "value": "Ella con su hija"
+      }
+    ],
+    "visibleObjection": "Los precios están muy altos.",
+    "hiddenObjections": [
+      {
+        "id": "h1",
+        "text": "Le preocupa el ruido de la avenida."
+      }
+    ],
+    "product": {
+      "version": 1,
+      "sector": "real_estate",
+      "name": "Residencial Los Olivos",
+      "description": "Departamentos de 60 m² en Los Olivos.",
+      "priceKind": "range",
+      "priceMin": 260000,
+      "priceMax": 320000,
+      "benefits": ["Estacionamiento incluido"],
+      "differentiators": ["Áreas comunes con ascensor"],
+      "verifiableFacts": ["Entrega en junio de 2027"]
+    }
+  },
+  "transcript": [
+    {
+      "seq": 1,
+      "author": "buyer",
+      "content": "Los precios están muy altos."
+    },
+    {
+      "seq": 2,
+      "author": "seller",
+      "content": "Señora, si no puede pagarlo, no me haga perder el tiempo."
+    },
+    {
+      "seq": 3,
+      "author": "buyer",
+      "content": "Qué falta de respeto."
+    },
+    {
+      "seq": 4,
+      "author": "seller",
+      "content": "Decídase hoy, mañana ya no hay departamentos."
+    },
+    {
+      "seq": 5,
+      "author": "buyer",
+      "content": "Me voy. Adiós."
+    }
+  ],
+  "expect": {
+    "criteria": {
+      "first_impression": [0, 5],
+      "diagnosis": [0, 10],
+      "active_listening": [0, 5],
+      "value_argument": [0, 10],
+      "objection_handling": [0, 7],
+      "negotiation_close": [0, 7]
+    },
+    "noEvaluable": ["follow_up"],
+    "flags": ["undue_pressure"]
+  }
+}

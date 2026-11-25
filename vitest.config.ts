@@ -17,7 +17,14 @@ export default defineConfig({
   esbuild: { jsx: 'automatic' },
   test: {
     environment: 'node',
-    include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx'],
+    // The golden dataset runs offline (recorded outputs) in every CI run; the live variant needs a
+    // real Gemini key and runs only with `pnpm test:golden` (vitest.golden.config.ts, golden.yml).
+    include: [
+      'tests/unit/**/*.test.ts',
+      'tests/unit/**/*.test.tsx',
+      'tests/golden/offline.test.ts',
+    ],
+    exclude: ['tests/golden/live.test.ts', 'node_modules/**'],
     setupFiles: ['tests/unit/support/setup.ts'],
     restoreMocks: true,
   },

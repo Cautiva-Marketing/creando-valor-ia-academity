@@ -1,0 +1,46 @@
+name: Golden dataset (live)
+
+# Live golden dataset (002 research.md §R15, plan.md → Complexity Tracking): real evaluator and
+# scripted injection conversations against the real providers (Gemini + Groq chains). It runs on PRs that touch prompts, AI schemas or
+# the dataset, weekly, and on demand. It never touches the production database.
+on:
+  pull_request:
+    paths:
+      - 'src/features/practice/ai/**'
+      - 'tests/golden/**'
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: golden-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  golden:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      AI_PROVIDER: google
+      GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      AI_MODEL_BUYER_SETUP: ${{ vars.AI_MODEL_BUYER_SETUP }}
+      AI_MODEL_BUYER: ${{ vars.AI_MODEL_BUYER }}
+      AI_MODEL_EVALUATOR: ${{ vars.AI_MODEL_EVALUATOR }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Require the provider keys
+        run: |
+          test -n "$GOOGLE_GENERATIVE_AI_API_KEY" || (echo "Missing secret GOOGLE_GENERATIVE_AI_API_KEY" && exit 1)
+          test -n "$GROQ_API_KEY" || (echo "Missing secret GROQ_API_KEY" && exit 1)
+      - run: pnpm test:golden

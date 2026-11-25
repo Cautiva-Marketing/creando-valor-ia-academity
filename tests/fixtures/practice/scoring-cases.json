@@ -1,0 +1,159 @@
+{
+  "$comment": "Shared by tests/unit/practice/scoring.test.ts and the pgTAP suite of T132 (data-model.md → Cálculos). Criteria use the rubric v1 weights as max.",
+  "totals": [
+    {
+      "name": "all evaluated, perfect",
+      "criteria": [
+        { "key": "first_impression", "status": "evaluated", "score": 10, "max": 10 },
+        { "key": "diagnosis", "status": "evaluated", "score": 20, "max": 20 },
+        { "key": "active_listening", "status": "evaluated", "score": 10, "max": 10 },
+        { "key": "value_argument", "status": "evaluated", "score": 20, "max": 20 },
+        { "key": "objection_handling", "status": "evaluated", "score": 15, "max": 15 },
+        { "key": "negotiation_close", "status": "evaluated", "score": 15, "max": 15 },
+        { "key": "follow_up", "status": "evaluated", "score": 10, "max": 10 }
+      ],
+      "total": 100,
+      "level": "advanced"
+    },
+    {
+      "name": "seed evaluation A1: one no_evaluable criterion renormalizes (65/90)",
+      "criteria": [
+        { "key": "first_impression", "status": "evaluated", "score": 8, "max": 10 },
+        { "key": "diagnosis", "status": "evaluated", "score": 15, "max": 20 },
+        { "key": "active_listening", "status": "no_evaluable", "score": null, "max": 10 },
+        { "key": "value_argument", "status": "evaluated", "score": 14, "max": 20 },
+        { "key": "objection_handling", "status": "evaluated", "score": 9, "max": 15 },
+        { "key": "negotiation_close", "status": "evaluated", "score": 12, "max": 15 },
+        { "key": "follow_up", "status": "evaluated", "score": 7, "max": 10 }
+      ],
+      "total": 72,
+      "level": "developing"
+    },
+    {
+      "name": "exact half rounds up (29/40 = 72.5)",
+      "criteria": [
+        { "key": "diagnosis", "status": "evaluated", "score": 14, "max": 20 },
+        { "key": "value_argument", "status": "evaluated", "score": 15, "max": 20 },
+        { "key": "follow_up", "status": "no_evaluable", "score": null, "max": 10 }
+      ],
+      "total": 73,
+      "level": "developing"
+    },
+    {
+      "name": "just below a band (59.5 rounds to 60)",
+      "criteria": [
+        { "key": "diagnosis", "status": "evaluated", "score": 60, "max": 100 },
+        { "key": "value_argument", "status": "evaluated", "score": 59, "max": 100 }
+      ],
+      "total": 60,
+      "level": "developing"
+    },
+    {
+      "name": "band edge 59",
+      "criteria": [{ "key": "diagnosis", "status": "evaluated", "score": 59, "max": 100 }],
+      "total": 59,
+      "level": "reinforcement"
+    },
+    {
+      "name": "band edge 74",
+      "criteria": [{ "key": "diagnosis", "status": "evaluated", "score": 74, "max": 100 }],
+      "total": 74,
+      "level": "developing"
+    },
+    {
+      "name": "band edge 75",
+      "criteria": [{ "key": "diagnosis", "status": "evaluated", "score": 75, "max": 100 }],
+      "total": 75,
+      "level": "competent"
+    },
+    {
+      "name": "band edge 89",
+      "criteria": [{ "key": "diagnosis", "status": "evaluated", "score": 89, "max": 100 }],
+      "total": 89,
+      "level": "competent"
+    },
+    {
+      "name": "band edge 90",
+      "criteria": [{ "key": "diagnosis", "status": "evaluated", "score": 90, "max": 100 }],
+      "total": 90,
+      "level": "advanced"
+    },
+    {
+      "name": "all zero",
+      "criteria": [
+        { "key": "diagnosis", "status": "evaluated", "score": 0, "max": 20 },
+        { "key": "follow_up", "status": "evaluated", "score": 0, "max": 10 }
+      ],
+      "total": 0,
+      "level": "reinforcement"
+    },
+    {
+      "name": "nothing evaluable: no total and no level",
+      "criteria": [
+        { "key": "diagnosis", "status": "no_evaluable", "score": null, "max": 20 },
+        { "key": "follow_up", "status": "no_evaluable", "score": null, "max": 10 }
+      ],
+      "total": null,
+      "level": null
+    }
+  ],
+  "stages": [
+    {
+      "name": "shared criterion counts for both of its stages; stages without evaluated criteria have no data",
+      "criteria": [
+        {
+          "key": "first_impression",
+          "stages": ["conoce"],
+          "status": "evaluated",
+          "score": 8,
+          "max": 10
+        },
+        { "key": "diagnosis", "stages": ["conoce"], "status": "evaluated", "score": 10, "max": 20 },
+        {
+          "key": "active_listening",
+          "stages": ["une"],
+          "status": "no_evaluable",
+          "score": null,
+          "max": 10
+        },
+        {
+          "key": "value_argument",
+          "stages": ["aumenta", "transforma"],
+          "status": "evaluated",
+          "score": 15,
+          "max": 20
+        },
+        {
+          "key": "objection_handling",
+          "stages": ["innova"],
+          "status": "evaluated",
+          "score": 0,
+          "max": 15
+        },
+        {
+          "key": "negotiation_close",
+          "stages": ["vende"],
+          "status": "evaluated",
+          "score": 15,
+          "max": 15
+        },
+        {
+          "key": "follow_up",
+          "stages": ["asegura"],
+          "status": "no_evaluable",
+          "score": null,
+          "max": 10
+        }
+      ],
+      "expected": {
+        "conoce": 65,
+        "aumenta": 75,
+        "une": null,
+        "transforma": 75,
+        "innova": 0,
+        "vende": 100,
+        "asegura": null
+      }
+    }
+  ]
+}

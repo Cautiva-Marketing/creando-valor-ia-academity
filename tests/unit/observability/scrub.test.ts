@@ -41,4 +41,39 @@ describe('Sentry scrubbing (research.md §R21)', () => {
       scrubBreadcrumb({ category: 'navigation', data: { to: '/invitacion/secret-token' } })?.data,
     ).toEqual({ to: '/invitacion/[token]' });
   });
+
+  it('drops practice request bodies and content extras (FR-057)', () => {
+    const event = scrubEvent({
+      request: { url: 'https://app.test/api/practicas/abc/turnos', data: { text: 'hola' } },
+      extra: { content: 'mensaje', reply: 'respuesta', prompt: 'p', text: 't', sessionId: 'abc' },
+      contexts: { response: { data: 'cuerpo' } },
+    });
+    expect(event.request).not.toHaveProperty('data');
+    expect(event.extra).toEqual({
+      content: '[filtered]',
+      reply: '[filtered]',
+      prompt: '[filtered]',
+      text: '[filtered]',
+      sessionId: 'abc',
+    });
+  });
+
+  it('drops breadcrumbs of practice and internal endpoints with their bodies', () => {
+    const crumb = scrubBreadcrumb({
+      category: 'fetch',
+      data: { url: '/api/practicas/abc/turnos', method: 'POST', request_body: '{"text":"hola"}' },
+    });
+    expect(crumb).toEqual({
+      category: 'fetch',
+      data: { url: '/api/practicas/abc/turnos', method: 'POST' },
+    });
+    const internal = scrubBreadcrumb({
+      category: 'http',
+      data: { url: 'https://app.test/api/internal/practice-evaluations', response_body: 'x' },
+    });
+    expect(internal).toEqual({
+      category: 'http',
+      data: { url: 'https://app.test/api/internal/practice-evaluations' },
+    });
+  });
 });

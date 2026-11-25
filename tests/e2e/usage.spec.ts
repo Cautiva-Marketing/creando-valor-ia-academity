@@ -1,7 +1,7 @@
-import { randomUUID } from 'node:crypto';
 import { formatNumber, formatUsd } from '../../src/lib/format';
 import { expectNoA11yViolations } from './fixtures/axe';
 import { adminClient, createSeller, createSuperadmin } from './fixtures/factories';
+import { createActiveSession } from './fixtures/practice-factories';
 import { expect, test } from './fixtures/test';
 
 /** US7 (FR-033, FR-006): aggregated usage by period, US$ totals, empty state, no conversation links. */
@@ -20,7 +20,8 @@ test.describe('US7 · consumo de IA', () => {
     page,
   }) => {
     const seller = await createSeller();
-    const simulation = randomUUID();
+    // A started practice (002: ai_usage.simulation_id references practice_sessions; it consumes one).
+    const { id: simulation } = await createActiveSession(seller);
     const { error } = await adminClient()
       .from('ai_usage')
       .insert([

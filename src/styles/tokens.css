@@ -24,6 +24,9 @@
   --on-danger: #ffffff;
   --info: #1d4f91;
   --on-info: #ffffff;
+  /* 002: quoted message highlighted in the transcript (FR-047) */
+  --highlight: #fff1c7;
+  --on-highlight: #17201c;
 
   --surface: #f3f5f1;
   --surface-raised: #ffffff;
@@ -70,6 +73,8 @@
   --on-danger: #2a0a06;
   --info: #8ab4f8;
   --on-info: #0a1a33;
+  --highlight: #4a3a12;
+  --on-highlight: #f6efe0;
 
   --surface: #0f1a17;
   --surface-raised: #17241f;

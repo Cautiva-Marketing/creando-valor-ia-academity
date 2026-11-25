@@ -53,7 +53,7 @@ export async function skipOnboarding(): Promise<ActionResult> {
   redirect('/inicio');
 }
 
-/** Finishes on the suggested first step: the profile. */
+/** Finishes on the suggested first step: registering a product (FR-053). */
 export async function completeOnboarding(): Promise<ActionResult> {
   const auth = await guard();
   if (!auth.ok) return auth;
@@ -62,7 +62,7 @@ export async function completeOnboarding(): Promise<ActionResult> {
   } catch (error) {
     return unexpected(error, 'completeOnboarding');
   }
-  redirect('/perfil');
+  redirect('/productos/nuevo');
 }
 
 /** Reopens the onboarding at the step reached (from the start once completed). */

@@ -1,0 +1,97 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 9,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Te presentaste y preguntaste por su situación.",
+      "improvement": "Mantén ese inicio.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 12,
+      "max_score": 20,
+      "evidence_message_ids": ["m2"],
+      "justification": "Preguntaste por distrito y uso, sin explorar más.",
+      "improvement": "Pregunta cuánto le afectan los cortes.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 3,
+      "max_score": 10,
+      "evidence_message_ids": ["m6"],
+      "justification": "Ignoraste su pregunta sobre la permanencia.",
+      "improvement": "Responde lo que pregunta.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "evaluated",
+      "score": 5,
+      "max_score": 20,
+      "evidence_message_ids": ["m4"],
+      "justification": "Usaste afirmaciones absolutas sin sustento.",
+      "improvement": "Usa la cobertura en 30 distritos.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 2,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Descartaste la objeción de permanencia.",
+      "improvement": "Explica las condiciones con transparencia.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "evaluated",
+      "score": 3,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Cerraste con urgencia falsa.",
+      "improvement": "Propón agendar la instalación.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "No hubo seguimiento acordado.",
+      "improvement": "Ofrece escribirle con la información.",
+      "confidence": 0.6
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Abriste con un buen diagnóstico inicial."],
+  "improvements": [
+    "No prometas lo que el producto no respalda.",
+    "Responde las dudas en lugar de presionar."
+  ],
+  "suggested_drill": {
+    "text": "Practica responder una pregunta de contrato con transparencia y sin plazos falsos.",
+    "stage": "innova"
+  },
+  "ethical_flags": [
+    {
+      "type": "unfounded_promise",
+      "explanation": "Prometiste un resultado que no está en los datos del producto.",
+      "message_ids": ["m4"]
+    },
+    {
+      "type": "undue_pressure",
+      "explanation": "Presionaste al cliente con urgencia o escasez que no está sustentada.",
+      "message_ids": ["m6"]
+    }
+  ]
+}

@@ -89,3 +89,52 @@ export const SEED_LEGAL_DOCUMENTS = {
   ai_notice: '00000000-0000-4000-c000-000000000002',
   privacy: '00000000-0000-4000-c000-000000000003',
 } as const;
+
+/** 002 practice seed (supabase/seed.sql → "002 · Seller practice"), same shape for sellers A and B. */
+function practiceSeed(l: 'a' | 'b') {
+  const id = (group: string, suffix: string) =>
+    `00000000-0000-4000-${group}-000000000${l}${suffix}`;
+  return {
+    products: {
+      realEstate: {
+        id: id('9100', '01'),
+        name: 'Lote en Lurín – Etapa 1',
+        versionIds: [id('9200', '11'), id('9200', '12')],
+      },
+      hardware: {
+        id: id('9100', '02'),
+        name: 'Kit de herramientas Pro',
+        versionIds: [id('9200', '21')],
+      },
+      archived: {
+        id: id('9100', '03'),
+        name: 'Cuenta de ahorro Cooperativa',
+        versionIds: [id('9200', '31')],
+      },
+    },
+    objections: {
+      distance: id('9300', '11'),
+      price: id('9300', '12'),
+      trust: id('9300', '13'),
+      competition: id('9300', '21'),
+      decisionMaker: id('9300', '22'),
+    },
+    sessions: {
+      /** Evaluated yesterday: 72 (developing), undue_pressure flag, one no_evaluable criterion. */
+      evaluated: id('9000', '01'),
+      /** Finalized, evaluation failed, 2 of 3 manual retries used. */
+      failed: id('9000', '02'),
+      /** Finalized by time with no seller messages: not_applicable. */
+      notApplicable: id('9000', '03'),
+      /** Evaluated 6 days ago: 54 (reinforcement), unfounded_promise flag. */
+      evaluatedOlder: id('9000', '04'),
+    },
+    evaluations: { evaluated: id('9400', '01'), evaluatedOlder: id('9400', '04') },
+  } as const;
+}
+
+export const SEED_PRACTICE = {
+  rubricId: '00000000-0000-4000-8000-0000000000a1',
+  vendedorA: practiceSeed('a'),
+  vendedorB: practiceSeed('b'),
+} as const;

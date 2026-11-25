@@ -1,0 +1,83 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 3,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Saludaste, pero el resto del mensaje no se dirige al cliente.",
+      "improvement": "Preséntate y valida su preocupación.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 2,
+      "max_score": 20,
+      "evidence_message_ids": ["m4"],
+      "justification": "No preguntaste para qué necesita el crédito.",
+      "improvement": "Pregunta por su necesidad y su cuota posible.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 1,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "No retomaste su preocupación por los intereses.",
+      "improvement": "Responde a lo que dice el cliente.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "evaluated",
+      "score": 6,
+      "max_score": 20,
+      "evidence_message_ids": ["m4"],
+      "justification": "Diste un dato verificable, sin conectarlo con su necesidad.",
+      "improvement": "Explica el costo total en su caso.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 4,
+      "max_score": 15,
+      "evidence_message_ids": ["m4"],
+      "justification": "Mencionaste la tasa, sin explorar la objeción.",
+      "improvement": "Pregunta con qué tasa compara.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "evaluated",
+      "score": 3,
+      "max_score": 15,
+      "evidence_message_ids": ["m4"],
+      "justification": "Preguntaste si le interesa, sin proponer un paso.",
+      "improvement": "Propón iniciar la evaluación.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "No hubo seguimiento.",
+      "improvement": "Acuerda un nuevo contacto.",
+      "confidence": 0.6
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Usaste un dato verificable del producto."],
+  "improvements": ["Dirige cada mensaje al cliente y a su necesidad."],
+  "suggested_drill": {
+    "text": "Practica responder la objeción de intereses con una pregunta de diagnóstico.",
+    "stage": "innova"
+  },
+  "ethical_flags": []
+}

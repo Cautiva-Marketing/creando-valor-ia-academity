@@ -16,6 +16,9 @@ describe('mapPostgresCode (contracts/database-rpc.md)', () => {
     ['23514', 'validation'],
     ['22023', 'validation'],
     ['23505', 'conflict'],
+    ['P0020', 'quota_exhausted'],
+    ['P0021', 'setup_limit'],
+    ['P0022', 'active_session'],
     ['XX000', 'unexpected'],
     [undefined, 'unexpected'],
   ])('%s → %s', (code, expected) => {
@@ -56,5 +59,61 @@ describe('ActionResult helpers', () => {
       fieldErrors: { email: ['x'] },
       values: { email: 'a' },
     });
+  });
+});
+
+describe('practice error details (002 contracts/database-rpc.md)', () => {
+  it('quota exhausted carries the scope and renewal date', () => {
+    expect(
+      fromPostgresError({ code: 'P0020', details: 'daily:2026-11-25T05:00:00+00:00' }),
+    ).toMatchObject({
+      code: 'quota_exhausted',
+      message: 'Alcanzaste tu límite de simulaciones.',
+      details: { scope: 'daily', renewsAt: '2026-11-25T05:00:00.000Z' },
+    });
+    expect(fromPostgresError({ code: 'P0020', details: 'disabled' })).toMatchObject({
+      details: { scope: 'disabled' },
+    });
+  });
+
+  it('setup limit carries the reason and retry date', () => {
+    expect(
+      fromPostgresError({ code: 'P0021', details: 'failure:2026-11-25T05:00:00Z' }),
+    ).toMatchObject({
+      code: 'setup_limit',
+      details: { reason: 'failure', retryAt: '2026-11-25T05:00:00.000Z' },
+    });
+  });
+
+  it('active session carries the session id', () => {
+    const sessionId = '00000000-0000-4000-9000-000000000a01';
+    expect(fromPostgresError({ code: 'P0022', details: sessionId })).toMatchObject({
+      code: 'active_session',
+      message: 'Tienes una práctica en curso.',
+      details: { sessionId },
+    });
+  });
+
+  it('conflict carries a whitelisted reason only', () => {
+    expect(fromPostgresError({ code: 'P0010', details: 'expired' })).toMatchObject({
+      code: 'conflict',
+      details: { reason: 'expired' },
+    });
+    expect(
+      fromPostgresError({ code: 'P0010', details: 'secret internals' }).details,
+    ).toBeUndefined();
+  });
+
+  it('malformed details are dropped instead of leaking', () => {
+    expect(
+      fromPostgresError({ code: 'P0020', details: 'weekly:tomorrow' }).details,
+    ).toBeUndefined();
+    expect(fromPostgresError({ code: 'P0022', details: 'not-a-uuid' }).details).toBeUndefined();
+  });
+
+  it('ai_unavailable has its own copy', () => {
+    expect(fail('ai_unavailable').message).toBe(
+      'No pudimos preparar a tu comprador. Inténtalo de nuevo.',
+    );
   });
 });

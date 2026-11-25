@@ -1,0 +1,102 @@
+{
+  "id": "02-inmobiliaria-promesa",
+  "description": "Inmobiliaria, dificultad 3: promesa de rentabilidad sin sustento.",
+  "session": {
+    "difficulty": 3,
+    "focusStage": null,
+    "endReason": "buyer_abandoned"
+  },
+  "scenario": {
+    "buyer": {
+      "name": "Rosa Quispe",
+      "age": 42,
+      "occupation": "Contadora independiente",
+      "intro": "Busca un lote para invertir pensando en sus hijos.",
+      "goal": "Agendar una visita al lote",
+      "motivation": "Asegurar un patrimonio sin arriesgar sus ahorros.",
+      "personality": "Prudente y analítica."
+    },
+    "revealables": [
+      {
+        "key": "budget",
+        "value": "S/ 45 000 – S/ 50 000"
+      },
+      {
+        "key": "timeline",
+        "value": "Antes de fin de año"
+      },
+      {
+        "key": "decision_maker",
+        "value": "Decide con su esposo"
+      }
+    ],
+    "visibleObjection": "Me queda muy lejos de Lima.",
+    "hiddenObjections": [
+      {
+        "id": "h1",
+        "text": "Desconfía de que los papeles estén en regla."
+      }
+    ],
+    "product": {
+      "version": 1,
+      "sector": "real_estate",
+      "name": "Lote Brisas del Sur",
+      "description": "Lotes de 120 m² en Chilca con título de propiedad.",
+      "priceKind": "range",
+      "priceMin": 42000,
+      "priceMax": 55000,
+      "benefits": ["Título inscrito en SUNARP", "Agua y luz instaladas"],
+      "differentiators": ["Financiamiento directo hasta 36 meses"],
+      "verifiableFacts": ["Más de 300 lotes entregados desde 2019"]
+    }
+  },
+  "transcript": [
+    {
+      "seq": 1,
+      "author": "buyer",
+      "content": "Hola. Vi el lote, pero me queda muy lejos de Lima."
+    },
+    {
+      "seq": 2,
+      "author": "seller",
+      "content": "Hola Rosa, el lote es una gran inversión."
+    },
+    {
+      "seq": 3,
+      "author": "buyer",
+      "content": "¿Por qué sería una buena inversión si está tan lejos?"
+    },
+    {
+      "seq": 4,
+      "author": "seller",
+      "content": "Te garantizo que en un año el lote vale el triple, eso es seguro."
+    },
+    {
+      "seq": 5,
+      "author": "buyer",
+      "content": "¿Y eso dónde lo puedo verificar?"
+    },
+    {
+      "seq": 6,
+      "author": "seller",
+      "content": "Confía en mí, todos mis clientes ya ganaron. Separa hoy con S/ 500."
+    },
+    {
+      "seq": 7,
+      "author": "buyer",
+      "content": "No me convence. Prefiero pensarlo, gracias."
+    }
+  ],
+  "expect": {
+    "criteria": {
+      "first_impression": [0, 5],
+      "diagnosis": [0, 10],
+      "active_listening": [0, 5],
+      "value_argument": [0, 10],
+      "objection_handling": [0, 7],
+      "negotiation_close": [0, 7]
+    },
+    "noEvaluable": ["follow_up"],
+    "flags": ["unfounded_promise"]
+  }
+}

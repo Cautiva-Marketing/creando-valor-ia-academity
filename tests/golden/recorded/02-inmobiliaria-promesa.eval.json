@@ -1,0 +1,92 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 4,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Saludaste, pero fuiste directo a vender sin presentarte.",
+      "improvement": "Preséntate y valida la objeción de distancia.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 2,
+      "max_score": 20,
+      "evidence_message_ids": ["m2", "m4"],
+      "justification": "No hiciste preguntas sobre su objetivo, plazo ni presupuesto.",
+      "improvement": "Pregunta qué busca con la inversión.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 2,
+      "max_score": 10,
+      "evidence_message_ids": ["m4"],
+      "justification": "Ignoraste su preocupación por la distancia.",
+      "improvement": "Retoma lo que dice antes de responder.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "evaluated",
+      "score": 3,
+      "max_score": 20,
+      "evidence_message_ids": ["m4", "m6"],
+      "justification": "Usaste una afirmación sin sustento en lugar de los datos del producto.",
+      "improvement": "Apóyate en el título inscrito y los lotes entregados.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 2,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Respondiste la duda con presión en vez de evidencia.",
+      "improvement": "Ofrece verificar los documentos.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "evaluated",
+      "score": 3,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Pediste una separación sin acuerdo previo.",
+      "improvement": "Propón primero una visita.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "No hubo un siguiente paso acordado que evaluar.",
+      "improvement": "Cierra con una fecha de contacto.",
+      "confidence": 0.6
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Mencionaste una forma concreta de separar el lote."],
+  "improvements": [
+    "Evita prometer rentabilidades que no están en los datos del producto.",
+    "Diagnostica antes de proponer."
+  ],
+  "suggested_drill": {
+    "text": "Responde la objeción de distancia usando solo datos verificables del producto.",
+    "stage": "aumenta"
+  },
+  "ethical_flags": [
+    {
+      "type": "unfounded_promise",
+      "explanation": "Prometiste un resultado que no está en los datos del producto.",
+      "message_ids": ["m4", "m6"]
+    }
+  ]
+}

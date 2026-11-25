@@ -1,11 +1,13 @@
 import {
   BarChart3,
   Building2,
-  Home,
+  History,
   Inbox,
   Mail,
+  MessagesSquare,
+  Package,
   Palette,
-  UserRound,
+  Sun,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -18,6 +20,8 @@ export interface NavItem {
   /** Shorter label for the bottom bar. */
   shortLabel?: string;
   icon: LucideIcon;
+  /** Extra path prefixes that also mark the item as current (e.g. /practicas/[id] for Practicar). */
+  match?: readonly string[];
   /** Key of a counter passed by the server (e.g. new access requests). */
   badgeKey?: 'newAccessRequests';
 }
@@ -25,9 +29,13 @@ export interface NavItem {
 export type NavBadges = Partial<Record<NonNullable<NavItem['badgeKey']>, number>>;
 
 export const NAV_ITEMS: Record<ShellRole, NavItem[]> = {
+  // 002 (FR-053, research.md §R12): Hoy · Practicar · Historial · Mis productos; Perfil lives in the
+  // account menu. `/inicio` keeps its URL (001 login and onboarding destination).
   vendedor: [
-    { href: '/inicio', label: 'Inicio', icon: Home },
-    { href: '/perfil', label: 'Perfil', icon: UserRound },
+    { href: '/inicio', label: 'Hoy', icon: Sun },
+    { href: '/practicar', label: 'Practicar', icon: MessagesSquare, match: ['/practicas'] },
+    { href: '/historial', label: 'Historial', icon: History },
+    { href: '/productos', label: 'Mis productos', shortLabel: 'Productos', icon: Package },
   ],
   superadmin: [
     { href: '/admin/invitaciones', label: 'Invitaciones', icon: Mail },
@@ -50,6 +58,10 @@ export const NAV_ITEMS: Record<ShellRole, NavItem[]> = {
 
 export function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function isItemActive(pathname: string, item: Pick<NavItem, 'href' | 'match'>): boolean {
+  return [item.href, ...(item.match ?? [])].some((prefix) => isActive(pathname, prefix));
 }
 
 export function badgeLabel(count: number | undefined): string | null {

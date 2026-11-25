@@ -34,11 +34,13 @@ describe('rate limit table matches research.md §R9', () => {
     ['access_request_ip', 3, 3600, null],
     ['webhook_id', 1, 24 * 3600, 24 * 3600],
     ['user_mutation', 60, 60, 60],
+    ['practice_turn', 20, 60, 60],
+    ['practice_status', 60, 60, 60],
   ] as const)('%s: %d per %ds, lockout %s', (scope, max, windowSeconds, lockoutSeconds) => {
     expect(RATE_LIMITS[scope]).toEqual({ max, windowSeconds, lockoutSeconds });
   });
 
-  it('has exactly the eight scopes of the database CHECK', () => {
+  it('has exactly the ten scopes of the database CHECK', () => {
     expect(Object.keys(RATE_LIMITS).sort()).toEqual(
       [
         'access_request_ip',
@@ -46,6 +48,8 @@ describe('rate limit table matches research.md §R9', () => {
         'login_account',
         'login_ip',
         'mfa_verify',
+        'practice_status',
+        'practice_turn',
         'recovery_email',
         'user_mutation',
         'webhook_id',

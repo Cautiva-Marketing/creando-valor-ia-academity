@@ -30,6 +30,8 @@ const COLOR_TOKENS = [
   'text',
   'text-muted',
   'focus-ring',
+  'highlight',
+  'on-highlight',
   'avatar-1',
   'avatar-2',
   'avatar-3',

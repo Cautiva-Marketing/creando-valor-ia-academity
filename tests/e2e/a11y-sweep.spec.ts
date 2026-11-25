@@ -1,6 +1,18 @@
 import type { Page } from '@playwright/test';
 import { expectNoA11yViolations } from './fixtures/axe';
-import { createInvitation, createSeller, createSuperadmin } from './fixtures/factories';
+import {
+  adminClient,
+  createInvitation,
+  createSeller,
+  createSuperadmin,
+} from './fixtures/factories';
+import {
+  createActiveSession,
+  createConfiguredSession,
+  createEvaluatedSession,
+  createObjections,
+  createProduct,
+} from './fixtures/practice-factories';
 import { expect, test } from './fixtures/test';
 
 /**
@@ -113,6 +125,71 @@ test.describe('barrido de accesibilidad', () => {
     await checkPage(page, '/inicio');
     await checkPage(page, '/perfil');
     await checkPage(page, '/admin/consumo');
+  });
+
+  test('rutas de la práctica (002): Hoy, productos, práctica en cada estado e historial', async ({
+    page,
+    loginAs,
+  }) => {
+    test.slow();
+    const seller = await createSeller();
+    const product = await createProduct(seller);
+    await createObjections(seller, product.id);
+    const evaluated = await createEvaluatedSession(seller, {
+      product,
+      flags: [{ type: 'undue_pressure', explanation: 'Presionaste.', seqs: [4] }],
+    });
+    const finished = async (status: 'pending' | 'failed') => {
+      const session = await createActiveSession(seller, { product, sellerMessages: 1 });
+      const { error } = await adminClient()
+        .from('practice_sessions')
+        .update({
+          status: 'finalized',
+          end_reason: 'seller_ended',
+          ended_at: new Date().toISOString(),
+          evaluation_status: status,
+          evaluation_failure_code: status === 'failed' ? 'provider_error' : null,
+          evaluation_due_at: new Date(
+            Date.now() + (status === 'pending' ? 600_000 : 0),
+          ).toISOString(),
+        })
+        .eq('id', session.id);
+      expect(error).toBeNull();
+      return session;
+    };
+    const failed = await finished('failed');
+    const pending = await finished('pending');
+    const active = await createActiveSession(seller, { product, sellerMessages: 2 });
+
+    await loginAs({ email: seller.email, password: seller.password });
+    for (const path of [
+      '/inicio',
+      '/productos',
+      '/productos/nuevo',
+      `/productos/${product.id}`,
+      `/productos/${product.id}?pestana=objeciones`,
+      '/practicar',
+      `/practicas/${active.id}`,
+      `/practicas/${pending.id}`,
+      `/practicas/${failed.id}`,
+      `/practicas/${evaluated.id}`,
+      '/historial',
+    ]) {
+      await checkPage(page, path);
+    }
+
+    // The pre-screen of a configured practice (only one active or configured at a time).
+    await adminClient()
+      .from('practice_sessions')
+      .update({
+        status: 'finalized',
+        end_reason: 'seller_ended',
+        ended_at: new Date().toISOString(),
+        evaluation_status: 'not_applicable',
+      })
+      .eq('id', active.id);
+    const configured = await createConfiguredSession(seller, { product });
+    await checkPage(page, `/practicas/${configured.id}`);
   });
 
   test('acceso suspendido', async ({ page, loginAs }) => {

@@ -1,0 +1,83 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 8,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Agradeciste y validaste su experiencia previa.",
+      "improvement": "Preséntate con tu nombre.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 15,
+      "max_score": 20,
+      "evidence_message_ids": ["m2", "m4"],
+      "justification": "Exploraste la causa del problema y el equipo.",
+      "improvement": "Pregunta por el plazo y presupuesto.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 7,
+      "max_score": 10,
+      "evidence_message_ids": ["m4", "m6"],
+      "justification": "Usaste lo que dijo sobre su equipo.",
+      "improvement": "Resume su necesidad en una frase.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "evaluated",
+      "score": 10,
+      "max_score": 20,
+      "evidence_message_ids": ["m6"],
+      "justification": "Mencionaste capacitación y soporte, sin datos verificables.",
+      "improvement": "Usa el dato de los 120 restaurantes.",
+      "confidence": 0.7
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 9,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Respondiste la objeción de complejidad.",
+      "improvement": "Confirma si la respuesta la convence.",
+      "confidence": 0.7
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 15,
+      "evidence_message_ids": [],
+      "justification": "No propusiste la demostración ni otro paso.",
+      "improvement": "Propón una demostración corta.",
+      "confidence": 0.7
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "No acordaste un seguimiento.",
+      "improvement": "Cierra con una fecha.",
+      "confidence": 0.7
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Diagnosticaste la causa de la objeción."],
+  "improvements": ["Propón un siguiente paso antes de quedarte sin mensajes."],
+  "suggested_drill": {
+    "text": "Practica proponer una demostración en cuanto resuelvas la objeción principal.",
+    "stage": "vende"
+  },
+  "ethical_flags": []
+}

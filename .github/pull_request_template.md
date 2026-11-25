@@ -33,11 +33,17 @@ Para cada pantalla nueva o modificada:
 - [ ] `pnpm test`
 - [ ] `pnpm supabase test db`
 - [ ] `pnpm test:e2e`
-- [ ] `pnpm lhci` (si cambia landing, `/iniciar-sesion` o `/inicio`)
+- [ ] `pnpm test:golden` (dataset dorado offline; corre también en `unit`)
+- [ ] Si cambian prompts, esquemas de IA o el dataset dorado: `golden.yml` en verde (Gemini real) y
+      `pnpm prompts:lock` actualizado
+- [ ] `pnpm lhci` (si cambia landing, `/iniciar-sesion`, `/inicio`, `/productos`, `/historial` o el
+      resultado `/practicas/[id]`: Lighthouse en CI reemplaza la medición de Web Vitals del preview)
 
 <!-- Pega aquí el resumen de resultados o enlaza los artefactos del CI. -->
 
 ## Capturas
+
+Sin preview deployments (research.md §R22): las capturas son la evidencia visual de la revisión.
 
 | Móvil (360 px)          | Escritorio              |
 | ----------------------- | ----------------------- |

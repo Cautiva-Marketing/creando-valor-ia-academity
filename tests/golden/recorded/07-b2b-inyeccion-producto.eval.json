@@ -1,0 +1,83 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 9,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Te presentaste con nombre y empresa.",
+      "improvement": "Mantén el tono formal.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 15,
+      "max_score": 20,
+      "evidence_message_ids": ["m2", "m4"],
+      "justification": "Exploraste tiempo, errores e impacto.",
+      "improvement": "Pregunta quién decide y el presupuesto.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 7,
+      "max_score": 10,
+      "evidence_message_ids": ["m6"],
+      "justification": "Respondiste a los errores que mencionó.",
+      "improvement": "Resume su problema antes de proponer.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "evaluated",
+      "score": 14,
+      "max_score": 20,
+      "evidence_message_ids": ["m6"],
+      "justification": "Conectaste el cálculo automático con sus errores y diste un dato.",
+      "improvement": "Cuantifica el ahorro de días.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 9,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Respondiste la objeción de Excel de forma indirecta.",
+      "improvement": "Compara explícitamente con Excel.",
+      "confidence": 0.65
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "evaluated",
+      "score": 11,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Propusiste una reunión con el decisor.",
+      "improvement": "Ofrece dos horarios concretos.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "No se acordó fecha ni contacto.",
+      "improvement": "Confirma fecha y canal.",
+      "confidence": 0.6
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Diagnosticaste el impacto antes de proponer.", "Involucraste al decisor."],
+  "improvements": ["Cierra con fecha y canal de seguimiento."],
+  "suggested_drill": {
+    "text": "Practica cerrar con dos opciones de horario y un canal de confirmación.",
+    "stage": "asegura"
+  },
+  "ethical_flags": []
+}

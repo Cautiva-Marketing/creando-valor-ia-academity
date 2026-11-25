@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /**
- * Lighthouse CI (SC-007, SC-008): mobile profile on the landing, /iniciar-sesion and /inicio.
- * /inicio needs a session: the seeded seller A signs in with @supabase/ssr (same cookie format as the
- * app) and that cookie is sent only on the authenticated run (an additive collect), so the public
- * pages are measured as an anonymous visitor. Assertions live in lighthouserc.json.
+ * Lighthouse CI (SC-007, SC-008; 002 T191): mobile profile on the landing, /iniciar-sesion and the
+ * seller pages /inicio ("Hoy"), /productos, /historial and the result of the seeded evaluated session
+ * of seller A (supabase/seed.sql → "002 · Seller practice"). Seller pages need a session: seller A
+ * signs in with @supabase/ssr (same cookie format as the app) and that cookie is sent only on the
+ * authenticated run (an additive collect), so the public pages are measured as an anonymous visitor.
+ * Same budgets as 001 (lighthouserc.json: performance ≥ 0.9, accessibility 1, LCP < 2.5 s, CLS < 0.1).
  *
  * Requires a running production server (`pnpm build && pnpm start`) and the local Supabase stack with
  * the seed. Env: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, LHCI_BASE_URL
@@ -19,6 +21,14 @@ const base = (process.env.LHCI_BASE_URL ?? 'http://localhost:3000').replace(/\/$
 
 // Seed credentials (supabase/seed.sql; local/CI only, never a real account).
 const SEED_SELLER = { email: 'vendedor.a@ejemplo.test', password: 'Semilla-Segura-2026' };
+/** Evaluated session of seller A in the seed (tests/e2e/fixtures/seed-data.ts → SEED_PRACTICE). */
+const SEED_EVALUATED_SESSION = '00000000-0000-4000-9000-000000000a01';
+const SELLER_PAGES = [
+  '/inicio',
+  '/productos',
+  '/historial',
+  `/practicas/${SEED_EVALUATED_SESSION}`,
+];
 
 function run(args) {
   execFileSync(process.execPath, [lhci, ...args], { stdio: 'inherit' });
@@ -53,7 +63,7 @@ const cookie = await sessionCookieHeader();
 run([
   'collect',
   '--additive',
-  `--url=${base}/inicio`,
+  ...SELLER_PAGES.map((path) => `--url=${base}${path}`),
   `--settings.extraHeaders=${JSON.stringify({ Cookie: cookie })}`,
 ]);
 run(['assert']);

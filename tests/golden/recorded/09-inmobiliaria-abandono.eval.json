@@ -1,0 +1,92 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 0,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Trataste a la clienta con descortesía.",
+      "improvement": "Saluda y agradece su interés.",
+      "confidence": 0.9
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 0,
+      "max_score": 20,
+      "evidence_message_ids": ["m2", "m4"],
+      "justification": "No hiciste preguntas.",
+      "improvement": "Pregunta qué busca y para cuándo.",
+      "confidence": 0.9
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 0,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Descalificaste su objeción.",
+      "improvement": "Valida su preocupación por el precio.",
+      "confidence": 0.9
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "evaluated",
+      "score": 0,
+      "max_score": 20,
+      "evidence_message_ids": ["m4"],
+      "justification": "No presentaste ningún beneficio.",
+      "improvement": "Usa los datos del producto.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 0,
+      "max_score": 15,
+      "evidence_message_ids": ["m2"],
+      "justification": "Respondiste la objeción con descalificación.",
+      "improvement": "Explora qué compara.",
+      "confidence": 0.9
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "evaluated",
+      "score": 1,
+      "max_score": 15,
+      "evidence_message_ids": ["m4"],
+      "justification": "Presionaste para decidir hoy.",
+      "improvement": "Propón una visita sin presión.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "La clienta abandonó la conversación.",
+      "improvement": "Despídete con cortesía y deja una puerta abierta.",
+      "confidence": 0.7
+    }
+  ],
+  "total_score": null,
+  "strengths": [],
+  "improvements": [
+    "Trata al cliente con respeto aunque la objeción sea difícil.",
+    "Evita la urgencia falsa."
+  ],
+  "suggested_drill": {
+    "text": "Practica responder una objeción de precio con una pregunta empática.",
+    "stage": "conoce"
+  },
+  "ethical_flags": [
+    {
+      "type": "undue_pressure",
+      "explanation": "Presionaste al cliente con urgencia o escasez que no está sustentada.",
+      "message_ids": ["m4"]
+    }
+  ]
+}

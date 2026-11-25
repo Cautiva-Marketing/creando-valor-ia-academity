@@ -5,7 +5,18 @@ import { refreshSession } from '@/lib/supabase/proxy';
  * Session refresh + per-request CSP nonce + security headers + optimistic redirects
  * (research.md §R19). Real authorization happens in the server (getRequestContext / guards).
  */
-const PRIVATE_PREFIXES = ['/inicio', '/onboarding', '/perfil', '/admin', '/design'];
+// /api/* stays out on purpose: Route Handlers answer 401 themselves (002 contracts/route-handlers.md).
+const PRIVATE_PREFIXES = [
+  '/inicio',
+  '/onboarding',
+  '/perfil',
+  '/admin',
+  '/design',
+  '/productos',
+  '/practicar',
+  '/practicas',
+  '/historial',
+];
 const NO_REFERRER_PREFIXES = ['/invitacion/', '/auth/confirm'];
 
 function buildCsp(nonce: string): string {

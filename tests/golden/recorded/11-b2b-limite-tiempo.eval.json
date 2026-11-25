@@ -1,0 +1,83 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 9,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Te presentaste y valoraste su equipo interno.",
+      "improvement": "Mantén ese reconocimiento.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 16,
+      "max_score": 20,
+      "evidence_message_ids": ["m2", "m4"],
+      "justification": "Exploraste frecuencia, causa e impacto.",
+      "improvement": "Indaga el presupuesto y quién decide.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 7,
+      "max_score": 10,
+      "evidence_message_ids": ["m4"],
+      "justification": "Profundizaste en lo que te contó.",
+      "improvement": "Resume el costo de las paradas.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 20,
+      "evidence_message_ids": [],
+      "justification": "No llegaste a presentar el servicio.",
+      "improvement": "Conecta la respuesta en 4 horas con sus paradas.",
+      "confidence": 0.65
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 8,
+      "max_score": 15,
+      "evidence_message_ids": ["m2"],
+      "justification": "Reconociste al técnico interno sin descalificarlo.",
+      "improvement": "Explica cómo complementas su trabajo.",
+      "confidence": 0.6
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 15,
+      "evidence_message_ids": [],
+      "justification": "El tiempo terminó antes de proponer un paso.",
+      "improvement": "Propón la visita técnica antes.",
+      "confidence": 0.65
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "No hubo seguimiento.",
+      "improvement": "Acuerda una fecha.",
+      "confidence": 0.6
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Diagnosticaste el impacto de las paradas."],
+  "improvements": ["Administra el tiempo para llegar a una propuesta."],
+  "suggested_drill": {
+    "text": "Practica proponer un siguiente paso en tu cuarto mensaje.",
+    "stage": "vende"
+  },
+  "ethical_flags": []
+}

@@ -1,0 +1,79 @@
+{
+  "id": "04-ferreteria-un-mensaje",
+  "description": "Ferretería, dificultad 4: un solo mensaje del vendedor.",
+  "session": {
+    "difficulty": 4,
+    "focusStage": null,
+    "endReason": "time_limit"
+  },
+  "scenario": {
+    "buyer": {
+      "name": "Miguel Torres",
+      "age": 51,
+      "occupation": "Maestro de obra",
+      "intro": "Compra materiales para tres obras al mes.",
+      "goal": "Que pida una cotización",
+      "motivation": "Ahorrar en compras grandes.",
+      "personality": "Exigente y comparador."
+    },
+    "revealables": [
+      {
+        "key": "budget",
+        "value": "S/ 8 000 al mes"
+      },
+      {
+        "key": "timeline",
+        "value": "Cada quincena"
+      },
+      {
+        "key": "decision_maker",
+        "value": "Su socio y él"
+      }
+    ],
+    "visibleObjection": "En otra ferretería me dan crédito.",
+    "hiddenObjections": [
+      {
+        "id": "h1",
+        "text": "Le han entregado tarde antes."
+      }
+    ],
+    "product": {
+      "version": 1,
+      "sector": "hardware",
+      "name": "Cuenta Constructor",
+      "description": "Cuenta para maestros de obra con precios por volumen.",
+      "priceKind": "range",
+      "priceMin": 500,
+      "priceMax": 20000,
+      "benefits": ["Descuento por volumen", "Entrega en obra"],
+      "differentiators": ["Crédito a 30 días"],
+      "verifiableFacts": ["Entregas en 24 horas en Lima Sur"]
+    }
+  },
+  "transcript": [
+    {
+      "seq": 1,
+      "author": "buyer",
+      "content": "Buenas, en otra ferretería me dan crédito."
+    },
+    {
+      "seq": 2,
+      "author": "seller",
+      "content": "Buenas tardes, nosotros también damos crédito a 30 días. ¿Qué materiales compra más seguido?"
+    },
+    {
+      "seq": 3,
+      "author": "buyer",
+      "content": "Cemento y fierro, sobre todo."
+    }
+  ],
+  "expect": {
+    "criteria": {
+      "first_impression": [6, 10],
+      "diagnosis": [0, 10],
+      "objection_handling": [5, 12]
+    },
+    "noEvaluable": ["active_listening", "value_argument", "negotiation_close", "follow_up"],
+    "flags": []
+  }
+}

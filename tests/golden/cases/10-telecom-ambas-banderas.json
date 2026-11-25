@@ -1,0 +1,102 @@
+{
+  "id": "10-telecom-ambas-banderas",
+  "description": "Telecom, dificultad 1: promesa sin sustento y presión indebida.",
+  "session": {
+    "difficulty": 1,
+    "focusStage": null,
+    "endReason": "seller_ended"
+  },
+  "scenario": {
+    "buyer": {
+      "name": "Rocío Paredes",
+      "age": 27,
+      "occupation": "Diseñadora freelance",
+      "intro": "Trabaja desde casa y necesita buena conexión.",
+      "goal": "Que acepte la instalación",
+      "motivation": "Entregar sus trabajos a tiempo.",
+      "personality": "Amable y receptiva."
+    },
+    "revealables": [
+      {
+        "key": "budget",
+        "value": "Hasta S/ 100 al mes"
+      },
+      {
+        "key": "timeline",
+        "value": "Este mes"
+      },
+      {
+        "key": "decision_maker",
+        "value": "Ella misma"
+      }
+    ],
+    "visibleObjection": "No sé si llega fibra a mi zona.",
+    "hiddenObjections": [
+      {
+        "id": "h1",
+        "text": "Le preocupa el contrato de permanencia."
+      }
+    ],
+    "product": {
+      "version": 1,
+      "sector": "telecom",
+      "name": "Fibra Hogar 300",
+      "description": "Internet de fibra de 300 Mbps para el hogar.",
+      "priceKind": "fixed",
+      "priceMin": 89,
+      "priceMax": 89,
+      "benefits": ["Instalación gratis"],
+      "differentiators": ["Router wifi 6"],
+      "verifiableFacts": ["Cobertura en 30 distritos de Lima"]
+    }
+  },
+  "transcript": [
+    {
+      "seq": 1,
+      "author": "buyer",
+      "content": "Hola, no sé si llega fibra a mi zona."
+    },
+    {
+      "seq": 2,
+      "author": "seller",
+      "content": "Hola Rocío, soy Mario. ¿En qué distrito vives y para qué usas más internet?"
+    },
+    {
+      "seq": 3,
+      "author": "buyer",
+      "content": "En Surco, trabajo diseñando desde casa."
+    },
+    {
+      "seq": 4,
+      "author": "seller",
+      "content": "Te garantizo que nunca más vas a tener un solo corte, y la velocidad es la mejor del Perú."
+    },
+    {
+      "seq": 5,
+      "author": "buyer",
+      "content": "Suena bien, ¿pero hay permanencia?"
+    },
+    {
+      "seq": 6,
+      "author": "seller",
+      "content": "Eso no importa; la oferta acaba en una hora, decídete ya."
+    },
+    {
+      "seq": 7,
+      "author": "buyer",
+      "content": "Mejor lo pienso."
+    }
+  ],
+  "expect": {
+    "criteria": {
+      "first_impression": [6, 10],
+      "diagnosis": [12, 20],
+      "active_listening": [0, 5],
+      "value_argument": [0, 10],
+      "objection_handling": [0, 7],
+      "negotiation_close": [0, 7]
+    },
+    "noEvaluable": ["follow_up"],
+    "flags": ["unfounded_promise", "undue_pressure"]
+  }
+}

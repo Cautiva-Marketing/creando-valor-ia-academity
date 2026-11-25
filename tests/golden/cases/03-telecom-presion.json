@@ -1,0 +1,97 @@
+{
+  "id": "03-telecom-presion",
+  "description": "Telecom, dificultad 2: presión indebida y escasez falsa.",
+  "session": {
+    "difficulty": 2,
+    "focusStage": null,
+    "endReason": "seller_ended"
+  },
+  "scenario": {
+    "buyer": {
+      "name": "Jorge Salas",
+      "age": 35,
+      "occupation": "Dueño de una bodega",
+      "intro": "Quiere internet estable para cobrar con QR.",
+      "goal": "Que acepte la instalación",
+      "motivation": "No perder ventas por cortes de señal.",
+      "personality": "Directo y apurado."
+    },
+    "revealables": [
+      {
+        "key": "budget",
+        "value": "Hasta S/ 120 al mes"
+      },
+      {
+        "key": "timeline",
+        "value": "Esta semana"
+      },
+      {
+        "key": "decision_maker",
+        "value": "Él mismo"
+      }
+    ],
+    "visibleObjection": "Ya tengo un proveedor.",
+    "hiddenObjections": [
+      {
+        "id": "h1",
+        "text": "Teme pagar penalidad por cambiar de proveedor."
+      }
+    ],
+    "product": {
+      "version": 1,
+      "sector": "telecom",
+      "name": "Fibra Negocio 200",
+      "description": "Internet de fibra de 200 Mbps para negocios.",
+      "priceKind": "fixed",
+      "priceMin": 99,
+      "priceMax": 99,
+      "benefits": ["Instalación en 48 horas", "Soporte 24/7"],
+      "differentiators": ["IP fija incluida"],
+      "verifiableFacts": ["Disponibilidad del 99,5 % en 2025"]
+    }
+  },
+  "transcript": [
+    {
+      "seq": 1,
+      "author": "buyer",
+      "content": "Hola, ya tengo un proveedor de internet."
+    },
+    {
+      "seq": 2,
+      "author": "seller",
+      "content": "Hola Jorge, ¿cómo te va con tu proveedor actual?"
+    },
+    {
+      "seq": 3,
+      "author": "buyer",
+      "content": "Se corta a veces, sobre todo en la tarde."
+    },
+    {
+      "seq": 4,
+      "author": "seller",
+      "content": "La promoción es solo hoy, decídete ya o pierdes el precio para siempre."
+    },
+    {
+      "seq": 5,
+      "author": "buyer",
+      "content": "No me gusta que me apuren."
+    },
+    {
+      "seq": 6,
+      "author": "seller",
+      "content": "Si no firmas ahora, mañana cuesta el doble."
+    }
+  ],
+  "expect": {
+    "criteria": {
+      "first_impression": [6, 10],
+      "diagnosis": [0, 10],
+      "active_listening": [0, 5],
+      "value_argument": [0, 10],
+      "objection_handling": [0, 7],
+      "negotiation_close": [0, 7]
+    },
+    "noEvaluable": ["follow_up"],
+    "flags": ["undue_pressure"]
+  }
+}
