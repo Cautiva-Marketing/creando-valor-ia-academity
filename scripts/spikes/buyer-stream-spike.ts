@@ -5,7 +5,7 @@
  * `partialOutputStream` with the candidate buyer model, and measures the time to the first visible
  * fragment (SC-007: < 2.5 s). Run with a real key and only fictitious data:
  *
- *   GOOGLE_GENERATIVE_AI_API_KEY=… AI_MODEL_BUYER=gemini-2.5-flash-lite pnpm tsx scripts/spikes/buyer-stream-spike.ts
+ *   GOOGLE_GENERATIVE_AI_API_KEY=… AI_MODEL_BUYER=gemini-3.5-flash-lite pnpm tsx scripts/spikes/buyer-stream-spike.ts
  *
  * Record the result (model, first fragment p50/p95, incremental yes/no) in research.md §R4. If the
  * reply does not stream incrementally, adopt plan B (`\n§META§{json}`) before US4.
@@ -44,7 +44,13 @@ async function runOnce(
     output: Output.object({ schema }),
     temperature: 0.8,
     maxRetries: 0,
-    providerOptions: { google: { thinkingConfig: { thinkingBudget: 0 } } },
+    providerOptions: {
+      google: { thinkingConfig: { thinkingLevel: process.env.SPIKE_THINKING ?? 'minimal' } },
+    },
+    onError: ({ error }) => {
+      const e = error as { message?: string; statusCode?: number; responseBody?: string };
+      console.error('STREAM ERROR', e.statusCode, e.message, e.responseBody?.slice(0, 400));
+    },
   });
   let firstMs = -1;
   let lastReply = '';
@@ -62,7 +68,7 @@ async function runOnce(
 }
 
 async function main() {
-  const modelId = process.env.AI_MODEL_BUYER ?? 'gemini-2.5-flash-lite';
+  const modelId = process.env.AI_MODEL_BUYER ?? 'gemini-3.5-flash-lite';
   if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     console.error('Set GOOGLE_GENERATIVE_AI_API_KEY (fictitious data only).');
     process.exit(2);
@@ -75,6 +81,8 @@ async function main() {
       `run ${i + 1}: first=${Math.round(r.firstMs)}ms total=${Math.round(r.totalMs)}ms increments=${r.increments}`,
     );
     if (r.firstMs >= 0) samples.push(r.firstMs);
+    // Free tier: requests per minute are per project; space the calls (SPIKE_DELAY_MS).
+    await new Promise((resolve) => setTimeout(resolve, Number(process.env.SPIKE_DELAY_MS ?? 7000)));
   }
   samples.sort((a, b) => a - b);
   const pct = (p: number) => samples[Math.min(samples.length - 1, Math.floor(p * samples.length))];

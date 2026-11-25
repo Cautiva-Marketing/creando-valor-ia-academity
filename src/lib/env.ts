@@ -71,9 +71,10 @@ const aiSchema = z
   .object({
     AI_PROVIDER: z.enum(['google', 'fake']).default('google'),
     GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
-    AI_MODEL_BUYER_SETUP: z.string().min(1).max(100).default('gemini-2.5-flash'),
-    AI_MODEL_BUYER: z.string().min(1).max(100).default('gemini-2.5-flash-lite'),
-    AI_MODEL_EVALUATOR: z.string().min(1).max(100).default('gemini-2.5-flash'),
+    // Verified with the spike (T003, research.md §R4). The 2.5 family is closed to new projects.
+    AI_MODEL_BUYER_SETUP: z.string().min(1).max(100).default('gemini-3.6-flash'),
+    AI_MODEL_BUYER: z.string().min(1).max(100).default('gemini-3.5-flash-lite'),
+    AI_MODEL_EVALUATOR: z.string().min(1).max(100).default('gemini-3.6-flash'),
     NODE_ENV: z.string().optional(),
     VERCEL_ENV: z.string().optional(),
     E2E: z.string().optional(),

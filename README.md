@@ -95,11 +95,18 @@ Regenerar tipos tras una migración:
   (Bearer `PRACTICE_DISPATCH_SECRET`). URL y secreto viven solo en Supabase Vault; localmente los
   carga `supabase/seed.sql` y en producción `scripts/ops/set-practice-dispatch.ts` (ver
   [`scripts/ops/README.md`](scripts/ops/README.md)).
-- **Capa gratuita de Gemini** (research.md §R16): los límites son por proyecto, no por usuario. Una
-  práctica usa ≈ 1 + hasta 20 + 1–3 llamadas, así que caben solo **decenas de prácticas al día en
-  toda la plataforma**, y Google puede usar los datos: solo datos ficticios en el piloto. Antes de
-  abrir el acceso más allá del piloto, pasar a la capa de pago (cambio de clave, sin cambio de
-  código) y revisar las cuotas por organización con el panel de consumo.
+- **Capa gratuita de Gemini: insuficiente** (research.md §R16, medido el 2026-11-25).
+  - Límites por proyecto, no por usuario: 20 solicitudes al día por modelo en `gemini-3.6-flash`, y
+    503 frecuentes por alta demanda en `gemini-3.5-flash-lite`.
+  - Una práctica usa entre 3 y 24 llamadas, así que no alcanza ni para el piloto. Además, Google
+    usa los datos de la capa gratuita.
+  - **Activar la facturación antes del piloto**, con un tope de presupuesto en Google Cloud. Cuesta
+    ≈ US$ 0,09 por práctica a precio de lista y solo cambia la clave, no el código.
+- **Modelos** (`AI_MODEL_*`): la familia 2.5 está cerrada a proyectos nuevos.
+  - Comprador: `gemini-3.5-flash-lite`, con `thinkingLevel: minimal`.
+  - Ficha y evaluador: `gemini-3.6-flash`.
+  - Si cambias el modelo del comprador, verifica que acepte `minimal` (`gemini-3.8-flash` no lo
+    acepta).
 
 ### Medición de los criterios de éxito (quickstart.md)
 

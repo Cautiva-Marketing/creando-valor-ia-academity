@@ -7,18 +7,19 @@ import { estimateCostUsd } from '@/lib/ai/pricing';
 afterEach(() => vi.unstubAllEnvs());
 
 describe('AI task configuration', () => {
-  it('keeps the buyer fast (no reasoning) and the evaluator deliberate', () => {
-    expect(AI_TASK_CONFIG.buyer.thinkingBudget).toBe(0);
-    expect(AI_TASK_CONFIG.evaluator.thinkingBudget).toBeGreaterThan(0);
+  it('keeps the buyer fast (minimal reasoning) and the evaluator deliberate', () => {
+    // Gemini 3 takes a thinking level; `thinkingBudget: 0` is rejected by gemini-3.5-flash-lite (T003).
+    expect(AI_TASK_CONFIG.buyer.thinkingLevel).toBe('minimal');
+    expect(AI_TASK_CONFIG.evaluator.thinkingLevel).toBe('medium');
     expect(AI_TASK_CONFIG.evaluator.temperature).toBeLessThan(AI_TASK_CONFIG.buyer.temperature);
   });
 
-  it('builds call settings with the Google thinking budget and no SDK retries', () => {
+  it('builds call settings with the Google thinking level and no SDK retries', () => {
     expect(callSettingsFor('buyer')).toEqual({
       temperature: AI_TASK_CONFIG.buyer.temperature,
       maxOutputTokens: AI_TASK_CONFIG.buyer.maxOutputTokens,
       maxRetries: 0,
-      providerOptions: { google: { thinkingConfig: { thinkingBudget: 0 } } },
+      providerOptions: { google: { thinkingConfig: { thinkingLevel: 'minimal' } } },
     });
   });
 
@@ -28,22 +29,24 @@ describe('AI task configuration', () => {
     vi.stubEnv('AI_MODEL_BUYER_SETUP', '');
     expect(modelIdFor('buyer')).toBe('modelo-cliente');
     expect(modelIdFor('evaluator')).toBe('modelo-evaluador');
-    expect(modelIdFor('buyer_setup')).toBe('gemini-2.5-flash');
+    expect(modelIdFor('buyer_setup')).toBe('gemini-3.6-flash');
   });
 });
 
 describe('estimateCostUsd', () => {
   it('uses list prices per million tokens', () => {
-    expect(estimateCostUsd('gemini-2.5-flash', 1_000_000, 1_000_000)).toBe(2.8);
-    expect(estimateCostUsd('gemini-2.5-flash-lite', 1_000_000, 1_000_000)).toBe(0.5);
+    expect(estimateCostUsd('gemini-3.6-flash', 1_000_000, 1_000_000)).toBe(9);
+    expect(estimateCostUsd('gemini-3.8-flash', 1_000_000, 1_000_000)).toBe(9);
+    expect(estimateCostUsd('gemini-3.5-flash-lite', 1_000_000, 1_000_000)).toBe(2.8);
   });
 
   it('matches versioned model ids by prefix and rounds to 6 decimals', () => {
-    expect(estimateCostUsd('gemini-2.5-flash-preview-09-2025', 1234, 567)).toBe(0.001788);
+    expect(estimateCostUsd('gemini-3.5-flash-lite-preview-11-2026', 1234, 567)).toBe(0.001788);
+    expect(estimateCostUsd('models/gemini-3.6-flash', 1000, 0)).toBe(0.0015);
   });
 
   it('costs nothing for fake models and unknown models fall back to the flash price', () => {
     expect(estimateCostUsd('fake-buyer', 1000, 1000)).toBe(0);
-    expect(estimateCostUsd('modelo-nuevo', 1_000_000, 0)).toBe(0.3);
+    expect(estimateCostUsd('modelo-nuevo', 1_000_000, 0)).toBe(1.5);
   });
 });

@@ -1,7 +1,9 @@
 /**
  * List prices in US$ per million tokens (research.md §R2). `ai_usage.estimated_cost_usd` records the
  * list cost even on the free tier, to size the move to a paid plan. Update when Google changes prices.
- * Matching is by longest prefix so versioned ids (`gemini-2.5-flash-preview-…`) resolve to their family.
+ * Matching is by longest prefix so versioned ids (`gemini-3.5-flash-lite-preview-…`) resolve to their
+ * family. Source: Gemini API pricing, standard paid tier, text (checked 2026-11-25). gemini-3.6/3.8
+ * flash have a promotional 0.75 / 3.75 until 2026-12-31; the standard price is recorded.
  */
 interface ModelPrice {
   inputPerMillion: number;
@@ -9,6 +11,9 @@ interface ModelPrice {
 }
 
 const PRICES: Record<string, ModelPrice> = {
+  'gemini-3.8-flash': { inputPerMillion: 1.5, outputPerMillion: 7.5 },
+  'gemini-3.6-flash': { inputPerMillion: 1.5, outputPerMillion: 7.5 },
+  'gemini-3.5-flash-lite': { inputPerMillion: 0.3, outputPerMillion: 2.5 },
   'gemini-2.5-pro': { inputPerMillion: 1.25, outputPerMillion: 10 },
   'gemini-2.5-flash': { inputPerMillion: 0.3, outputPerMillion: 2.5 },
   'gemini-2.5-flash-lite': { inputPerMillion: 0.1, outputPerMillion: 0.4 },
@@ -16,8 +21,8 @@ const PRICES: Record<string, ModelPrice> = {
   'gemini-2.0-flash-lite': { inputPerMillion: 0.075, outputPerMillion: 0.3 },
 };
 
-/** Unknown models are estimated at the Flash price rather than recorded as free. */
-const FALLBACK = PRICES['gemini-2.5-flash']!;
+/** Unknown models are estimated at the current Flash price rather than recorded as free. */
+const FALLBACK = PRICES['gemini-3.6-flash']!;
 
 const PREFIXES = Object.keys(PRICES).sort((a, b) => b.length - a.length);
 

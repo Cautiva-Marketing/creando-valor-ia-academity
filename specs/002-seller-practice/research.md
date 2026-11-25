@@ -124,14 +124,28 @@ forma incremental con salida estructurada y que el primer fragmento llega < 2,5 
 plan B ya diseñado: `streamText` de texto plano con un separador final de una sola línea
 (`\n§META§{json}`) que el servidor recorta antes de reenviar; el resto del flujo no cambia.
 
-**Estado del spike (T003, 2026-11-24)**: el script `scripts/spikes/buyer-stream-spike.ts` está
-listo, pero la ejecución en vivo queda **pendiente** porque el entorno de implementación no tiene
-`GOOGLE_GENERATIVE_AI_API_KEY`. Se verificó con `ai@6.0.336` que `streamText` expone
-`partialOutputStream` y que `Output.object` existe, y el proveedor falso emite `reply` de forma
-incremental por ese mismo camino. Se implementa el **plan A**. El modelo candidato en
-`.env.example` es `gemini-2.5-flash-lite`, aún sin verificar. Antes de producción hay que ejecutar el
-spike con la clave real y anotar aquí el p95 del primer fragmento. Si no hay streaming incremental,
-se activa el plan B en `buyer-turn.ts` sin tocar el resto del flujo.
+**Estado del spike (T003, ejecutado 2026-11-25 con la clave real, capa gratuita)**:
+
+- **Modelos 2.5 cerrados**: `gemini-2.5-flash` y `gemini-2.5-flash-lite` responden 404 "no longer
+  available to new users". Los vigentes son la familia 3.x.
+- **`thinkingBudget: 0` ya no sirve**: `gemini-3.5-flash-lite` lo rechaza con 400. Gemini 3 usa
+  `thinkingLevel` (`minimal` | `low` | `medium` | `high`). `gemini-3.8-flash` rechaza `minimal`.
+  `src/lib/ai/config.ts` pasó a `thinkingLevel`: comprador `minimal`, ficha `low`, evaluador
+  `medium`.
+- **Plan A confirmado**: `streamText` + `Output.object` emite `reply` de forma incremental por
+  `partialOutputStream` (2–3 incrementos por respuesta corta) con `gemini-3.5-flash-lite` y
+  `gemini-3.5-flash`.
+- **Primer fragmento**:
+  - `gemini-3.5-flash`: 0,9–2,4 s en 11 muestras, p50 ≈ 1,8 s.
+  - `gemini-3.5-flash-lite`: 1,7–8,9 s con la capa gratuita congestionada (503 frecuentes).
+
+  El p95 de SC-007 no se puede certificar en la capa gratuita. Se mide en producción con
+  `ai_usage.first_chunk_ms` (T198) tras pasar a la capa de pago.
+- **Modelos elegidos**:
+  - comprador `gemini-3.5-flash-lite` (el más barato que acepta `minimal`);
+  - ficha y evaluador `gemini-3.6-flash` (sucesor estable al que Google redirige `3.5-flash`).
+
+  `gemini-3.8-flash` cuesta lo mismo pero devolvió 503 en todas las pruebas.
 
 **Razón**: un solo llamado mantiene la latencia del primer fragmento y el costo; el orden
 `reply → meta` hace que los metadatos describan lo que el texto efectivamente hizo (revelados).
@@ -435,6 +449,34 @@ por usuario y día, despachador en lotes de 5 (R8) y registro de costo de lista 
 de abrir el acceso más allá del piloto se recomienda pasar a la capa de pago (cambio de clave, sin
 cambio de código) y revisar las cuotas por organización; el panel de consumo de 001 da los datos
 para decidir.
+
+**Actualización (T003, 2026-11-25), medido con la clave real**:
+
+- **Cuota diaria mínima**: la capa gratuita de `gemini-3.5-flash` y `gemini-3.6-flash` tiene un
+  límite de **20 solicitudes por día, por proyecto y por modelo**
+  (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`). Se agotó tras unas 20 llamadas del spike.
+- **Sobrecarga**: `gemini-3.5-flash-lite` y `gemini-3.8-flash` devolvieron 503 ("high demand") en
+  la mayoría de los intentos, incluso tras los reintentos de la app.
+
+Con 3–24 llamadas por práctica, la capa gratuita **no alcanza ni para el piloto**: como mucho, una
+práctica al día en toda la plataforma. Tampoco permite correr el dataset dorado en vivo (11 casos del
+evaluador + 6 guiones multi-turno).
+
+**Nueva decisión recomendada**: activar la facturación (capa de pago) en el proyecto de Google
+**antes del piloto**, con un tope de presupuesto en Google Cloud. La capa de pago además deja de usar
+los datos para mejorar los productos de Google.
+
+Costo estimado por práctica a precio estándar (`src/lib/ai/pricing.ts`):
+
+| Llamada | Tokens aproximados | Costo |
+| --- | --- | --- |
+| 20 turnos con `3.5-flash-lite` | ≈ 60 k de entrada + 4 k de salida | ≈ US$ 0,03 |
+| Ficha con `3.6-flash` | ≈ 3 k + 1,5 k | ≈ US$ 0,016 |
+| Evaluación con `3.6-flash` | ≈ 10 k + 4 k (con razonamiento) | ≈ US$ 0,045 |
+| **Total** | | **≈ US$ 0,09** |
+
+Las tarifas de `3.6-flash` y `3.8-flash` son promocionales a la mitad hasta el 2026-12-31. El
+código no cambia: solo la clave.
 
 **Alternativas consideradas**: cachear respuestas (no aplica a conversaciones); modelo local (fuera
 del stack y del presupuesto de infraestructura).
