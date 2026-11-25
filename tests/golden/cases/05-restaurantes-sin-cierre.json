@@ -1,0 +1,101 @@
+{
+  "id": "05-restaurantes-sin-cierre",
+  "description": "Restaurantes, dificultad 5: buen diagnóstico pero sin cierre ni seguimiento.",
+  "session": {
+    "difficulty": 5,
+    "focusStage": null,
+    "endReason": "message_limit"
+  },
+  "scenario": {
+    "buyer": {
+      "name": "Carmen Huamán",
+      "age": 38,
+      "occupation": "Dueña de una cevichería",
+      "intro": "Quiere ordenar los pedidos por delivery.",
+      "goal": "Que acepte una demostración",
+      "motivation": "Reducir errores en los pedidos.",
+      "personality": "Desconfiada y breve."
+    },
+    "revealables": [
+      {
+        "key": "budget",
+        "value": "S/ 150 al mes"
+      },
+      {
+        "key": "timeline",
+        "value": "Antes de la temporada de verano"
+      },
+      {
+        "key": "decision_maker",
+        "value": "Ella y su hermano"
+      }
+    ],
+    "visibleObjection": "Ya probé sistemas y son complicados.",
+    "hiddenObjections": [
+      {
+        "id": "h1",
+        "text": "Su personal tiene poca experiencia digital."
+      }
+    ],
+    "product": {
+      "version": 1,
+      "sector": "restaurants",
+      "name": "Comanda Fácil",
+      "description": "Sistema de pedidos para restaurantes con tablet y delivery.",
+      "priceKind": "fixed",
+      "priceMin": 129,
+      "priceMax": 129,
+      "benefits": ["Capacitación incluida", "Integración con delivery"],
+      "differentiators": ["Soporte por WhatsApp"],
+      "verifiableFacts": ["Usado por 120 restaurantes en Lima"]
+    }
+  },
+  "transcript": [
+    {
+      "seq": 1,
+      "author": "buyer",
+      "content": "Ya probé sistemas y son complicados."
+    },
+    {
+      "seq": 2,
+      "author": "seller",
+      "content": "Hola Carmen, gracias por contarme. ¿Qué fue lo más complicado del sistema que probaste?"
+    },
+    {
+      "seq": 3,
+      "author": "buyer",
+      "content": "Mis chicos no lo entendían."
+    },
+    {
+      "seq": 4,
+      "author": "seller",
+      "content": "¿Cuántas personas tomarían los pedidos y cuánta experiencia tienen con celulares?"
+    },
+    {
+      "seq": 5,
+      "author": "buyer",
+      "content": "Tres, y casi nada."
+    },
+    {
+      "seq": 6,
+      "author": "seller",
+      "content": "Entiendo. Incluimos capacitación para tu equipo y soporte por WhatsApp."
+    },
+    {
+      "seq": 7,
+      "author": "buyer",
+      "content": "Ajá."
+    }
+  ],
+  "expect": {
+    "criteria": {
+      "first_impression": [6, 10],
+      "diagnosis": [12, 20],
+      "active_listening": [6, 10],
+      "value_argument": [0, 10],
+      "objection_handling": [9, 15]
+    },
+    "noEvaluable": ["negotiation_close", "follow_up"],
+    "flags": []
+  }
+}

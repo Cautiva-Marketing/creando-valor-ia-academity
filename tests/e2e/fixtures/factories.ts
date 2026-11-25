@@ -28,7 +28,7 @@ export function adminClient(): Admin {
   return cached;
 }
 
-function anonClient(): Admin {
+export function anonClient(): Admin {
   return createClient<Database>(
     testEnv('NEXT_PUBLIC_SUPABASE_URL'),
     testEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),

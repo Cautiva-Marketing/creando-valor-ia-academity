@@ -9,3 +9,6 @@ process.env.SMTP_HOST ??= '127.0.0.1';
 process.env.SMTP_PORT ??= '54325';
 process.env.EMAIL_FROM ??= 'Creando Valor IA <no-responder@ejemplo.test>';
 process.env.RATE_LIMIT_PEPPER ??= 'test-pepper-test-pepper-test-pepper';
+// 002: unit tests never call Gemini (the AI adapter resolves to the fake provider).
+process.env.AI_PROVIDER ??= 'fake';
+process.env.PRACTICE_DISPATCH_SECRET ??= 'unit-test-practice-dispatch-secret-000000';

@@ -11,7 +11,13 @@ test.describe('US3 · inicio y cierre de sesión', () => {
   test('el vendedor A sembrado entra y llega a /inicio', async ({ page }) => {
     await signInViaUi(page, SEED_USERS.vendedorA.email, SEED_PASSWORD);
     await expect(page).toHaveURL(/\/inicio$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Hola, Ana' })).toBeVisible();
+    // "Hoy" greets by the local hour (FR-051).
+    await expect(
+      page.getByRole('heading', {
+        level: 1,
+        name: /^(Buenos días|Buenas tardes|Buenas noches), Ana$/,
+      }),
+    ).toBeVisible();
   });
 
   test('el error es genérico e idéntico para correo inexistente y contraseña errónea', async ({

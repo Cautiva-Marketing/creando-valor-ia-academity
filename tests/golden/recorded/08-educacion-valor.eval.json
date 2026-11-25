@@ -1,0 +1,83 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 9,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Te presentaste y validaste la objeción de precio.",
+      "improvement": "Mantén ese inicio.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 17,
+      "max_score": 20,
+      "evidence_message_ids": ["m2", "m4"],
+      "justification": "Descubriste su objetivo y el requisito del puesto.",
+      "improvement": "Pregunta por su plazo.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 8,
+      "max_score": 10,
+      "evidence_message_ids": ["m6"],
+      "justification": "Conectaste el certificado con lo que pide su empresa.",
+      "improvement": "Sigue usando sus palabras.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "evaluated",
+      "score": 18,
+      "max_score": 20,
+      "evidence_message_ids": ["m6"],
+      "justification": "Comparaste el precio con el beneficio y usaste un dato verificable.",
+      "improvement": "Cuantifica el aumento esperado.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 13,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Transformaste la objeción de precio en inversión.",
+      "improvement": "Explora también la objeción oculta.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "evaluated",
+      "score": 13,
+      "max_score": 15,
+      "evidence_message_ids": ["m8"],
+      "justification": "Propusiste una reserva concreta.",
+      "improvement": "Ofrece la forma de pago.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "evaluated",
+      "score": 9,
+      "max_score": 10,
+      "evidence_message_ids": ["m10"],
+      "justification": "Acordaste envío y llamada con fecha.",
+      "improvement": "Confirma el canal.",
+      "confidence": 0.85
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Transformaste el precio en inversión.", "Cerraste con seguimiento concreto."],
+  "improvements": ["Explora si hay otra preocupación antes de cerrar."],
+  "suggested_drill": {
+    "text": "Practica preguntar \"¿hay algo más que te preocupe?\" antes de cerrar.",
+    "stage": "innova"
+  },
+  "ethical_flags": []
+}

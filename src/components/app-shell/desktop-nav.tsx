@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { NAV_ITEMS, badgeLabel, isActive, type NavBadges, type ShellRole } from './nav-config';
+import { NAV_ITEMS, badgeLabel, isItemActive, type NavBadges, type ShellRole } from './nav-config';
 
 /** Top navigation from 768 px (`aria-current="page"`). */
 export function DesktopNav({ role, badges = {} }: { role: ShellRole; badges?: NavBadges }) {
@@ -12,7 +12,7 @@ export function DesktopNav({ role, badges = {} }: { role: ShellRole; badges?: Na
     <nav aria-label="Principal" className="hidden md:block">
       <ul className="flex items-center gap-1">
         {NAV_ITEMS[role].map((item) => {
-          const active = isActive(pathname, item.href);
+          const active = isItemActive(pathname, item);
           const badge = badgeLabel(item.badgeKey ? badges[item.badgeKey] : undefined);
           const Icon = item.icon;
           return (

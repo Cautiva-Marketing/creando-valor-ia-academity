@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { NAV_ITEMS, badgeLabel, isActive, type NavBadges, type ShellRole } from './nav-config';
+import { NAV_ITEMS, badgeLabel, isItemActive, type NavBadges, type ShellRole } from './nav-config';
 
 /** Bottom bar below 768 px: targets ≥ 44 px and safe-area inset. */
 export function BottomNav({ role, badges = {} }: { role: ShellRole; badges?: NavBadges }) {
@@ -16,7 +16,7 @@ export function BottomNav({ role, badges = {} }: { role: ShellRole; badges?: Nav
     >
       <ul className="grid auto-cols-fr grid-flow-col">
         {items.map((item) => {
-          const active = isActive(pathname, item.href);
+          const active = isItemActive(pathname, item);
           const badge = badgeLabel(item.badgeKey ? badges[item.badgeKey] : undefined);
           const Icon = item.icon;
           return (

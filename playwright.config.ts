@@ -1,6 +1,15 @@
+import { existsSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
 
+// Local stack values (gitignored). Loaded into process.env before anything reads it: the web server
+// inherits process.env, which Next.js gives precedence over .env.local, so a local e2e run never
+// builds or tests against the remote project.
+if (existsSync('.env.test.local')) process.loadEnvFile('.env.test.local');
+
 const baseURL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+
+/** Local/CI dispatcher secret: same value as `practice_dispatch_secret` in supabase/seed.sql. */
+const E2E_DISPATCH_SECRET = 'local-dev-practice-dispatch-secret-0000000000';
 
 const mobile = { viewport: { width: 360, height: 800 }, isMobile: true, hasTouch: true };
 const desktop = { viewport: { width: 1280, height: 800 } };
@@ -62,6 +71,14 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     // Allows the test-only E2E_EMAIL_FAIL_DOMAIN switch under `next start` (see src/lib/env.ts).
     // Empty DSNs keep the suite's deliberate errors out of Sentry (process env wins over .env.local).
-    env: { E2E: '1', SENTRY_DSN: '', NEXT_PUBLIC_SENTRY_DSN: '' },
+    // 002: every e2e runs with the deterministic fake AI provider (research.md §R2) and the local
+    // dispatcher secret that supabase/seed.sql stores in Vault.
+    env: {
+      E2E: '1',
+      SENTRY_DSN: '',
+      NEXT_PUBLIC_SENTRY_DSN: '',
+      AI_PROVIDER: 'fake',
+      PRACTICE_DISPATCH_SECRET: E2E_DISPATCH_SECRET,
+    },
   },
 });

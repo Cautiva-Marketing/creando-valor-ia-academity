@@ -1,0 +1,83 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 6,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Saludaste con cortesía y respondiste la objeción.",
+      "improvement": "Preséntate antes de responder.",
+      "confidence": 0.6
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 8,
+      "max_score": 20,
+      "evidence_message_ids": ["m2"],
+      "justification": "Hiciste una pregunta pertinente, pero no hubo más conversación.",
+      "improvement": "Pregunta por volumen y frecuencia.",
+      "confidence": 0.5
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "Con un solo mensaje no hay evidencia de escucha.",
+      "improvement": "Retoma lo que el cliente dice.",
+      "confidence": 0.5
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 20,
+      "evidence_message_ids": [],
+      "justification": "No llegaste a argumentar valor.",
+      "improvement": "Menciona la entrega en 24 horas.",
+      "confidence": 0.5
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 8,
+      "max_score": 15,
+      "evidence_message_ids": ["m2"],
+      "justification": "Igualaste la condición de crédito.",
+      "improvement": "Indaga qué más valora del otro proveedor.",
+      "confidence": 0.55
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 15,
+      "evidence_message_ids": [],
+      "justification": "No hubo intento de cierre.",
+      "improvement": "Propón una cotización.",
+      "confidence": 0.5
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "No hubo seguimiento.",
+      "improvement": "Acuerda cuándo enviar la cotización.",
+      "confidence": 0.5
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Respondiste la objeción con una condición concreta."],
+  "improvements": ["Sostén la conversación con más preguntas."],
+  "suggested_drill": {
+    "text": "Practica mantener la conversación con tres preguntas encadenadas.",
+    "stage": "conoce"
+  },
+  "ethical_flags": []
+}

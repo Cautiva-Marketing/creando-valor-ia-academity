@@ -56,8 +56,12 @@ test.describe('US5 · app shell', () => {
     await loginAs('vendedorA');
     await page.goto('/inicio');
     const nav = primaryNav(page);
-    await expect(nav.getByRole('link', { name: 'Inicio' })).toHaveAttribute('aria-current', 'page');
-    await expect(nav.getByRole('link', { name: 'Perfil' })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Hoy' })).toHaveAttribute('aria-current', 'page');
+    // 002 (FR-053): Hoy · Practicar · Historial · Mis productos; Perfil moves to the account menu.
+    for (const section of [/Practicar/, /Historial/, /Mis productos/]) {
+      await expect(nav.getByRole('link', { name: section })).toBeVisible();
+    }
+    await expect(nav.getByRole('link', { name: 'Perfil' })).toHaveCount(0);
     for (const section of SUPERADMIN_SECTIONS) {
       await expect(page.getByRole('link', { name: section })).toHaveCount(0);
     }

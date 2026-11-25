@@ -69,6 +69,8 @@ jobs:
       EMAIL_FROM: 'Creando Valor IA <no-responder@ejemplo.test>'
       RATE_LIMIT_PEPPER: ci-only-pepper-0000000000000000000000
       SEND_EMAIL_HOOK_SECRET: v1,whsec_Y2ktb25seS1zZWNyZXQtY2ktb25seS1zZWNyZXQtY2k=
+      GOOGLE_GENERATIVE_AI_API_KEY: AIzaCiOnlyPlaceholderValue000000000000000
+      PRACTICE_DISPATCH_SECRET: ci-only-practice-dispatch-secret-00000000000
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -117,6 +119,10 @@ jobs:
       EMAIL_FROM: 'Creando Valor IA <no-responder@ejemplo.test>'
       RATE_LIMIT_PEPPER: ci-only-pepper-0000000000000000000000
       E2E_EMAIL_FAIL_DOMAIN: falla-envio.test
+      # 002: deterministic fake AI provider (no Gemini calls, no real ai_usage cost) and the local
+      # dispatcher secret stored in Vault by supabase/seed.sql.
+      AI_PROVIDER: fake
+      PRACTICE_DISPATCH_SECRET: local-dev-practice-dispatch-secret-0000000000
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

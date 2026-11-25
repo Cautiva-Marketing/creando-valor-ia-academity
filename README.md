@@ -49,25 +49,79 @@ Plantilla comentada en [`.env.example`](.env.example). Resumen:
 | `RATE_LIMIT_PEPPER`                                                | servidor     | HMAC de claves de rate limit y marcas de tiempo firmadas          |
 | `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`  | servidor     | Errores y source maps                                             |
 | `E2E_EMAIL_FAIL_DOMAIN`                                            | solo pruebas | Fuerza fallos de envío; `src/lib/env.ts` la rechaza en producción |
+| `AI_PROVIDER`                                                      | servidor     | `google` (Gemini) o `fake` (proveedor determinista de pruebas)    |
+| `GOOGLE_GENERATIVE_AI_API_KEY`                                     | servidor     | Clave de Gemini (capa gratuita: solo datos ficticios)             |
+| `AI_MODEL_BUYER_SETUP`, `AI_MODEL_BUYER`, `AI_MODEL_EVALUATOR`     | servidor     | Modelo por tarea (ficha del comprador, turnos, evaluación)        |
+| `PRACTICE_DISPATCH_SECRET`                                         | servidor     | Bearer del despachador interno de evaluaciones (≥ 32 bytes)       |
 
 Las variables de servidor nunca llevan prefijo `NEXT_PUBLIC_`; `pnpm check:bundle-secrets` verifica
 que ningún valor secreto llegue a `.next/static`.
 
 ## Scripts
 
-| Script                                   | Qué hace                                                                                   |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `pnpm dev` / `pnpm build` / `pnpm start` | Desarrollo, build y servidor de producción                                                 |
-| `pnpm lint` / `pnpm typecheck`           | ESLint (incluye la regla de tokens) y TypeScript                                           |
-| `pnpm test`                              | Vitest (esquemas, formato, contraste, correos…)                                            |
-| `pnpm supabase test db`                  | pgTAP: RLS, aislamiento, aal2, auditoría, retención, guards `admin_*`                      |
-| `pnpm test:e2e`                          | Playwright + axe en 360 px y escritorio × claro y oscuro (construye y arranca la app)      |
-| `pnpm lhci`                              | Lighthouse móvil sobre landing, `/iniciar-sesion` e `/inicio` (requiere la app en `:3000`) |
-| `pnpm check:bundle-secrets`              | Busca secretos en el bundle del cliente (tras `pnpm build`)                                |
-| `pnpm email:dev`                         | Vista previa de las plantillas de correo                                                   |
+| Script                                   | Qué hace                                                                                    |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `pnpm dev` / `pnpm build` / `pnpm start` | Desarrollo, build y servidor de producción                                                  |
+| `pnpm lint` / `pnpm typecheck`           | ESLint (incluye la regla de tokens) y TypeScript                                            |
+| `pnpm test`                              | Vitest (esquemas, formato, contraste, correos…)                                             |
+| `pnpm supabase test db`                  | pgTAP: RLS, aislamiento, aal2, auditoría, retención, guards `admin_*`                       |
+| `pnpm test:e2e`                          | Playwright + axe en 360 px y escritorio × claro y oscuro (construye y arranca la app)       |
+| `pnpm lhci`                              | Lighthouse móvil: landing, login, Hoy, productos, historial y un resultado (app en `:3000`) |
+| `pnpm check:bundle-secrets`              | Busca secretos en el bundle del cliente (tras `pnpm build`)                                 |
+| `pnpm email:dev`                         | Vista previa de las plantillas de correo                                                    |
+| `pnpm test:golden`                       | Dataset dorado del evaluador: offline siempre; en vivo con `GOOGLE_GENERATIVE_AI_API_KEY`   |
+| `pnpm prompts:lock`                      | Añade a `prompts.lock.json` el hash de las versiones de prompt nuevas                       |
 
 Regenerar tipos tras una migración:
 `pnpm -s supabase gen types typescript --local > src/lib/supabase/database.types.ts`.
+
+## IA de la práctica (002)
+
+- **Proveedor**: un único adaptador (`src/features/practice/ai/`) elige el proveedor con
+  `AI_PROVIDER`. `fake` es determinista (sin red ni clave) y lo usan Vitest y todas las e2e; acepta
+  marcadores de prueba como `[[e2e:eval-falla]]` o `[[e2e:eval-lenta:N]]` en el texto del vendedor.
+  `google` usa Gemini con los modelos de `AI_MODEL_*`.
+- **Dataset dorado** (`tests/golden/`): casos con rangos esperados por criterio, alertas éticas y
+  conversaciones de inyección. `pnpm test:golden` valida offline las evaluaciones grabadas; con clave
+  de Gemini ejecuta además el evaluador real. `.github/workflows/golden.yml` lo corre en vivo en PRs
+  que tocan prompts, esquemas de IA o el dataset, cada lunes y a demanda (nunca contra la base de
+  producción).
+- **Bloqueo de prompts** (research.md §R3): `src/features/practice/ai/prompts/prompts.lock.json`
+  guarda el SHA-256 de cada versión de prompt. Un texto nuevo exige subir su `PROMPT_VERSION` y
+  ejecutar `pnpm prompts:lock` (nunca reescribe versiones ya bloqueadas); la prueba unitaria falla si
+  un texto cambia bajo una versión bloqueada, para que todo cambio pase por el dataset dorado.
+- **Despachador de evaluaciones**: `pg_cron` ejecuta `private.run_practice_maintenance()` cada minuto
+  y envía con `pg_net` las evaluaciones pendientes a `POST /api/internal/practice/evaluations`
+  (Bearer `PRACTICE_DISPATCH_SECRET`). URL y secreto viven solo en Supabase Vault; localmente los
+  carga `supabase/seed.sql` y en producción `scripts/ops/set-practice-dispatch.ts` (ver
+  [`scripts/ops/README.md`](scripts/ops/README.md)).
+- **Capa gratuita de Gemini** (research.md §R16): los límites son por proyecto, no por usuario. Una
+  práctica usa ≈ 1 + hasta 20 + 1–3 llamadas, así que caben solo **decenas de prácticas al día en
+  toda la plataforma**, y Google puede usar los datos: solo datos ficticios en el piloto. Antes de
+  abrir el acceso más allá del piloto, pasar a la capa de pago (cambio de clave, sin cambio de
+  código) y revisar las cuotas por organización con el panel de consumo.
+
+### Medición de los criterios de éxito (quickstart.md)
+
+```sql
+-- SC-007: primer fragmento del comprador < 2,5 s (p95, últimos 7 días)
+select percentile_cont(0.95) within group (order by first_chunk_ms)
+  from ai_usage
+ where task = 'buyer' and outcome = 'success' and created_at > now() - interval '7 days';
+
+-- SC-008: 95 % de las evaluaciones listas en < 60 s desde el fin de la práctica
+select avg((e.created_at - s.ended_at < interval '60 seconds')::int) as share_under_60s
+  from practice_evaluations e
+  join practice_sessions s on s.id = e.session_id
+ where e.created_at > now() - interval '7 days';
+
+-- SC-012: el consumo diario por organización nunca supera la cuota
+select c.organization_id, date_trunc('day', c.consumed_at) as day, count(*), q.daily_limit
+  from simulation_consumptions c
+  join quotas q on q.organization_id = c.organization_id
+ group by 1, 2, q.daily_limit
+having count(*) > q.daily_limit;  -- debe devolver 0 filas
+```
 
 ## Operación
 

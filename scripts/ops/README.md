@@ -81,3 +81,29 @@ select created_at, actor_type, actor_label, object_id, data
 
 Si el script informa que la auditoría falló después del reset, registra el incidente manualmente
 (fecha, operador, usuario) y avisa al resto del equipo.
+
+## Despachador de evaluaciones (Vault)
+
+`private.run_practice_maintenance()` envía cada minuto, con `pg_net`, las evaluaciones `pending`
+que el disparo inmediato no tomó. La URL de la app y el secreto Bearer viven **solo** en Supabase
+Vault (`practice_dispatch_url`, `practice_dispatch_secret`); localmente los carga `supabase/seed.sql`
+y en producción este script (únicamente con aprobación explícita, como parte de la salida a
+producción):
+
+```bash
+pnpm tsx --env-file=<archivo> scripts/ops/set-practice-dispatch.ts --project-ref <ref>
+```
+
+Variables: `SUPABASE_ACCESS_TOKEN` (token personal de la Management API), `SUPABASE_PROJECT_REF`
+(debe coincidir con `--project-ref`), `PRACTICE_DISPATCH_URL` (origen `https` de la app, sin ruta) y
+`PRACTICE_DISPATCH_SECRET` (≥ 32 bytes, el mismo valor que la variable de Vercel). El script crea o
+actualiza ambos secretos y nunca imprime el token ni el secreto.
+
+Verificación (en el SQL editor):
+
+```sql
+select status_code, created from net._http_response order by created desc limit 5; -- 202 esperados
+select status, return_message, start_time from cron.job_run_details
+ where jobid = (select jobid from cron.job where jobname = 'practice-maintenance')
+ order by start_time desc limit 5;
+```

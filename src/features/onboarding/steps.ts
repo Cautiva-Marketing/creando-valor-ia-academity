@@ -26,11 +26,11 @@ export const ONBOARDING_STEPS: readonly [OnboardingStep, OnboardingStep, Onboard
   },
   {
     title: 'Tu primer paso',
-    body: 'Completa tu perfil para que tus fechas y horarios se muestren en tu zona horaria.',
+    body: 'Registra el producto o servicio que vendes: con él preparamos a tu cliente simulado.',
     points: [
-      'Revisa que tu nombre esté bien escrito.',
-      'Elige tu zona horaria.',
-      'Muy pronto podrás empezar tu primera práctica.',
+      'Escribe su precio, beneficios y datos que el cliente pueda verificar.',
+      'Luego agrega las objeciones que más escuchas.',
+      'Con eso ya puedes hacer tu primera práctica.',
     ],
   },
 ];

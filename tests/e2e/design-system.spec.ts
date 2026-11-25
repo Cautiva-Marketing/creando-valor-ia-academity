@@ -27,6 +27,10 @@ const COMPONENTS = [
   'score-ring',
   'avatar',
   'menu',
+  'chip',
+  'score-trend-chart',
+  'cautiva-strip',
+  'highlight',
 ];
 
 test.describe('US6 · /design', () => {

@@ -34,6 +34,12 @@ export const TOKEN_PAIRS: TokenPair[] = [
   { foreground: 'on-warning', background: 'warning', min: 4.5, usage: 'Insignia de advertencia' },
   { foreground: 'on-danger', background: 'danger', min: 4.5, usage: 'Botón destructivo' },
   { foreground: 'on-info', background: 'info', min: 4.5, usage: 'Insignia informativa' },
+  {
+    foreground: 'on-highlight',
+    background: 'highlight',
+    min: 4.5,
+    usage: 'Mensaje citado resaltado',
+  },
   { foreground: 'primary', background: 'surface', min: 3, usage: 'Relleno de controles activos' },
   // `accent` (ají) is only a fill behind `on-accent` text (≈ 2.3:1 against light surfaces, research
   // §R14); indicators and accent text use `accent-strong` (checked above against every surface).

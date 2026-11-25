@@ -1,0 +1,123 @@
+{
+  "id": "01-educacion-diagnostico",
+  "description": "Educación, dificultad 1: diagnóstico completo, valor y cierre de la clase de prueba.",
+  "session": {
+    "difficulty": 1,
+    "focusStage": null,
+    "endReason": "goal_achieved"
+  },
+  "scenario": {
+    "buyer": {
+      "name": "Lucía Ramos",
+      "age": 29,
+      "occupation": "Asistente administrativa",
+      "intro": "Trabaja en una distribuidora y quiere crecer.",
+      "goal": "Que se inscriba en la clase de prueba",
+      "motivation": "Quiere un ascenso este año.",
+      "personality": "Práctica y algo tímida."
+    },
+    "revealables": [
+      {
+        "key": "budget",
+        "value": "Hasta S/ 1 200"
+      },
+      {
+        "key": "timeline",
+        "value": "Empezar este mes"
+      },
+      {
+        "key": "decision_maker",
+        "value": "Ella misma"
+      }
+    ],
+    "visibleObjection": "No tengo tiempo para estudiar.",
+    "hiddenObjections": [
+      {
+        "id": "h1",
+        "text": "Le preocupa no seguir el ritmo en línea."
+      }
+    ],
+    "product": {
+      "version": 1,
+      "sector": "education",
+      "name": "Curso de ventas consultivas",
+      "description": "Curso en línea de 8 semanas con clases grabadas.",
+      "priceKind": "fixed",
+      "priceMin": 1000,
+      "priceMax": 1000,
+      "benefits": ["Certificado", "Clases grabadas"],
+      "differentiators": ["Mentoría semanal"],
+      "verifiableFacts": ["Más de 500 egresados"]
+    }
+  },
+  "transcript": [
+    {
+      "seq": 1,
+      "author": "buyer",
+      "content": "Hola, me interesa el curso pero no tengo tiempo para estudiar."
+    },
+    {
+      "seq": 2,
+      "author": "seller",
+      "content": "Hola Lucía, soy Carla del instituto. Entiendo, el tiempo es lo más valioso. ¿Cómo es tu semana de trabajo?"
+    },
+    {
+      "seq": 3,
+      "author": "buyer",
+      "content": "Trabajo de lunes a sábado y llego cansada."
+    },
+    {
+      "seq": 4,
+      "author": "seller",
+      "content": "¿Qué te gustaría lograr con el curso y para cuándo? Así vemos si te conviene."
+    },
+    {
+      "seq": 5,
+      "author": "buyer",
+      "content": "Quiero un ascenso este año, me gustaría empezar este mes."
+    },
+    {
+      "seq": 6,
+      "author": "seller",
+      "content": "Las clases quedan grabadas: puedes verlas en el horario que te acomode, y tienes una mentoría semanal para no perder el ritmo."
+    },
+    {
+      "seq": 7,
+      "author": "buyer",
+      "content": "Eso me ayuda, me daba miedo atrasarme."
+    },
+    {
+      "seq": 8,
+      "author": "seller",
+      "content": "Más de 500 egresados lo hicieron trabajando. ¿Te parece si te inscribo en la clase de prueba del jueves y luego conversamos?"
+    },
+    {
+      "seq": 9,
+      "author": "buyer",
+      "content": "Sí, inscríbeme en la clase de prueba."
+    },
+    {
+      "seq": 10,
+      "author": "seller",
+      "content": "Listo, te envío el enlace hoy y te escribo el viernes para saber cómo te fue."
+    },
+    {
+      "seq": 11,
+      "author": "buyer",
+      "content": "Perfecto, gracias."
+    }
+  ],
+  "expect": {
+    "criteria": {
+      "first_impression": [6, 10],
+      "diagnosis": [12, 20],
+      "active_listening": [6, 10],
+      "value_argument": [12, 20],
+      "objection_handling": [9, 15],
+      "negotiation_close": [9, 15],
+      "follow_up": [6, 10]
+    },
+    "noEvaluable": [],
+    "flags": []
+  }
+}

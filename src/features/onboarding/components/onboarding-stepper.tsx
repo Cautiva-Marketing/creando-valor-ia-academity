@@ -103,7 +103,7 @@ export function OnboardingStepper({
                 loading={pending}
                 loadingLabel="Guardando…"
               >
-                Completar mi perfil
+                Registrar mi producto
               </Button>
             ) : (
               <Button onClick={() => goTo(step + 1)} loading={pending} loadingLabel="Guardando…">

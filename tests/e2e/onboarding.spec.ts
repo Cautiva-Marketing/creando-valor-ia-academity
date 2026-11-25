@@ -79,13 +79,13 @@ test.describe('US8 · onboarding', () => {
     await expect(stepLabel(page)).toHaveText('Paso 1 de 3');
   });
 
-  test('completar lleva al perfil', async ({ page }) => {
+  test('completar lleva a registrar el primer producto', async ({ page }) => {
     const seller = await newSeller(page);
     await page.getByRole('button', { name: 'Siguiente' }).click();
     await page.getByRole('button', { name: 'Siguiente' }).click();
     await expect(stepLabel(page)).toHaveText('Paso 3 de 3');
-    await page.getByRole('button', { name: 'Completar mi perfil' }).click();
-    await expect(page).toHaveURL(/\/perfil$/);
+    await page.getByRole('button', { name: 'Registrar mi producto' }).click();
+    await expect(page).toHaveURL(/\/productos\/nuevo$/);
     expect(await profileOf(seller.id)).toEqual({
       onboarding_status: 'completed',
       onboarding_step: 3,

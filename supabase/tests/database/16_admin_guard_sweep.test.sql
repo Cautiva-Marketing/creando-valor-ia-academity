@@ -3,7 +3,7 @@
 -- superadmin-only tables return zero rows.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(10);
 
 create function pg_temp.auth_as(p_user uuid, p_aal text)
 returns void
@@ -88,6 +88,17 @@ select pg_temp.auth_as('00000000-0000-4000-a000-000000000001', 'aal2');
 set local role authenticated;
 select isnt(pg_temp.unguarded_admin_functions(), '{}'::text[], 'control: with aal2 the functions run past the guard');
 reset role;
+
+-- 002 (T068): the organization and usage admin functions read only organizations, quotas, ai_usage
+-- and simulation_consumptions, never practice content.
+select is(
+  (select array_agg(distinct m[1] order by m[1]) from pg_proc p,
+       regexp_matches(p.prosrc, 'public\.([a-z_]+)', 'g') as m
+      where p.proname in ('admin_list_organizations', 'admin_usage_summary')
+        and m[1] not in ('organization_type', 'organization_status')),
+  array['ai_usage', 'organizations', 'quotas', 'simulation_consumptions'],
+  'admin_list_organizations/admin_usage_summary only reference organizations, quotas, ai_usage and simulation_consumptions'
+);
 
 select * from finish();
 rollback;

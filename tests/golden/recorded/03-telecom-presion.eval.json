@@ -1,0 +1,89 @@
+{
+  "rubric_version": "1.0",
+  "criteria": [
+    {
+      "criterion_id": "first_impression",
+      "status": "evaluated",
+      "score": 6,
+      "max_score": 10,
+      "evidence_message_ids": ["m2"],
+      "justification": "Saludaste y preguntaste por su situación.",
+      "improvement": "Preséntate con tu nombre y empresa.",
+      "confidence": 0.75
+    },
+    {
+      "criterion_id": "diagnosis",
+      "status": "evaluated",
+      "score": 6,
+      "max_score": 20,
+      "evidence_message_ids": ["m2"],
+      "justification": "Hiciste una sola pregunta y no exploraste el impacto de los cortes.",
+      "improvement": "Pregunta cuánto le cuestan los cortes.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "active_listening",
+      "status": "evaluated",
+      "score": 2,
+      "max_score": 10,
+      "evidence_message_ids": ["m4"],
+      "justification": "No retomaste los cortes en la tarde que mencionó.",
+      "improvement": "Conecta tu propuesta con su problema.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "value_argument",
+      "status": "evaluated",
+      "score": 3,
+      "max_score": 20,
+      "evidence_message_ids": ["m4", "m6"],
+      "justification": "No mencionaste la disponibilidad ni el soporte.",
+      "improvement": "Usa el dato de disponibilidad del 99,5 %.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "objection_handling",
+      "status": "evaluated",
+      "score": 2,
+      "max_score": 15,
+      "evidence_message_ids": ["m6"],
+      "justification": "Respondiste su incomodidad con más presión.",
+      "improvement": "Valida su molestia y ofrece información.",
+      "confidence": 0.8
+    },
+    {
+      "criterion_id": "negotiation_close",
+      "status": "evaluated",
+      "score": 2,
+      "max_score": 15,
+      "evidence_message_ids": ["m4", "m6"],
+      "justification": "Intentaste cerrar con urgencia falsa.",
+      "improvement": "Propón una prueba o una visita técnica.",
+      "confidence": 0.85
+    },
+    {
+      "criterion_id": "follow_up",
+      "status": "no_evaluable",
+      "score": null,
+      "max_score": 10,
+      "evidence_message_ids": [],
+      "justification": "No hubo seguimiento acordado.",
+      "improvement": "Acuerda una fecha para volver a conversar.",
+      "confidence": 0.6
+    }
+  ],
+  "total_score": null,
+  "strengths": ["Abriste con una pregunta sobre su proveedor actual."],
+  "improvements": ["Evita la urgencia falsa.", "Explora el impacto de los cortes."],
+  "suggested_drill": {
+    "text": "Practica cerrar con una propuesta de prueba sin plazos artificiales.",
+    "stage": "vende"
+  },
+  "ethical_flags": [
+    {
+      "type": "undue_pressure",
+      "explanation": "Presionaste al cliente con urgencia o escasez que no está sustentada.",
+      "message_ids": ["m4", "m6"]
+    }
+  ]
+}

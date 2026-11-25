@@ -25,7 +25,7 @@ create temporary view business_tables as
      and c.relkind in ('r', 'p')
      and c.relname not in (
        'organizations', 'profiles', 'platform_admins', 'legal_documents', 'legal_acceptances',
-       'invitations', 'access_requests', 'audit_logs'
+       'invitations', 'access_requests', 'audit_logs', 'rubrics', 'rubric_criteria'
      );
 
 select is_empty(

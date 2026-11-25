@@ -1,0 +1,91 @@
+{
+  "id": "00000000-0000-4000-8000-0000000000a1",
+  "version": "1.0",
+  "name": "Ventas consultivas",
+  "criteria": [
+    {
+      "key": "first_impression",
+      "name": "Primera impresión y confianza",
+      "weight": 10,
+      "stages": ["conoce"],
+      "description": "Saluda con respeto, se presenta con claridad y genera un clima de confianza antes de vender. Trata al cliente con cortesía aunque la conversación se ponga difícil.",
+      "anchors": {
+        "low": "Entra directo a vender o con un tono brusco o insistente; ignora la objeción inicial o la descalifica.",
+        "mid": "Saluda con cortesía y reconoce la objeción, pero sin presentarse ni generar un vínculo claro.",
+        "high": "Se presenta, valida la preocupación inicial del cliente y propone conversar sobre su situación antes de ofrecer."
+      }
+    },
+    {
+      "key": "diagnosis",
+      "name": "Diagnóstico y preguntas",
+      "weight": 20,
+      "stages": ["conoce"],
+      "description": "Investiga el contexto, la motivación y la necesidad con preguntas abiertas y pertinentes (para qué, cuándo, quién decide, cuánto) y resume lo que entiende.",
+      "anchors": {
+        "low": "No hace preguntas o solo pregunta si quiere comprar; supone la necesidad del cliente.",
+        "mid": "Hace algunas preguntas útiles, pero deja sin explorar el objetivo, el plazo, el presupuesto o quién decide.",
+        "high": "Descubre el objetivo, los criterios de decisión, el plazo y el presupuesto con preguntas abiertas, y resume las necesidades con sus palabras."
+      }
+    },
+    {
+      "key": "active_listening",
+      "name": "Escucha activa y empatía",
+      "weight": 10,
+      "stages": ["une"],
+      "description": "Retoma lo que dice el cliente, valida sus emociones y conecta explícitamente su necesidad con la oferta.",
+      "anchors": {
+        "low": "Responde con un guion fijo sin considerar lo que el cliente dijo.",
+        "mid": "Reconoce algunas respuestas del cliente, pero no conecta su necesidad con la oferta.",
+        "high": "Parafrasea, valida la preocupación del cliente y vincula cada propuesta con una necesidad que él expresó."
+      }
+    },
+    {
+      "key": "value_argument",
+      "name": "Argumentación de valor",
+      "weight": 20,
+      "stages": ["aumenta", "transforma"],
+      "description": "Eleva el valor percibido con beneficios específicos y demostrables y traduce características en resultados para el cliente, usando solo datos del producto.",
+      "anchors": {
+        "low": "Enumera características genéricas o hace afirmaciones sin sustento (p. ej., valorización futura o títulos no indicados).",
+        "mid": "Menciona beneficios del producto, pero sin relacionarlos con resultados concretos para este cliente.",
+        "high": "Explica resultados concretos para el cliente con beneficios y datos verificables del producto, sin exagerar ni inventar."
+      }
+    },
+    {
+      "key": "objection_handling",
+      "name": "Manejo de objeciones",
+      "weight": 15,
+      "stages": ["innova"],
+      "description": "Explora la objeción antes de responder, propone alternativas útiles y creativas sin inventar condiciones y verifica si la duda quedó resuelta.",
+      "anchors": {
+        "low": "Ignora, minimiza o discute la objeción; responde con presión o con condiciones inventadas.",
+        "mid": "Responde la objeción visible con argumentos razonables, pero no indaga la causa ni descubre objeciones ocultas.",
+        "high": "Indaga la causa de la objeción, descubre preocupaciones ocultas y propone alternativas útiles respaldadas por datos del producto."
+      }
+    },
+    {
+      "key": "negotiation_close",
+      "name": "Negociación y cierre",
+      "weight": 15,
+      "stages": ["vende"],
+      "description": "Solicita un compromiso adecuado al momento de la conversación (siguiente paso, acuerdo o cierre informado) sin presión indebida ni urgencia artificial.",
+      "anchors": {
+        "low": "No pide ningún compromiso o lo fuerza con escasez falsa, urgencia artificial o presión.",
+        "mid": "Propone un siguiente paso, pero de forma vaga o antes de haber resuelto las dudas principales.",
+        "high": "Propone un compromiso concreto y proporcional (p. ej., agendar una visita) cuando el cliente está listo, y confirma su aceptación."
+      }
+    },
+    {
+      "key": "follow_up",
+      "name": "Seguimiento y siguiente paso",
+      "weight": 10,
+      "stages": ["asegura"],
+      "description": "Confirma expectativas, acuerda fecha, canal y responsables del siguiente paso y ofrece verificación o acompañamiento posterior.",
+      "anchors": {
+        "low": "Termina sin acordar nada ni confirmar lo conversado.",
+        "mid": "Menciona un seguimiento general sin fecha, canal ni responsables.",
+        "high": "Resume lo acordado, define fecha y canal del siguiente contacto y confirma qué hará cada parte."
+      }
+    }
+  ]
+}

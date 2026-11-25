@@ -7,7 +7,9 @@ export type RateLimitScope =
   | 'activation_ip'
   | 'access_request_ip'
   | 'webhook_id'
-  | 'user_mutation';
+  | 'user_mutation'
+  | 'practice_turn'
+  | 'practice_status';
 
 export interface RateLimitRule {
   /** Maximum events inside the window before blocking. */
@@ -30,6 +32,9 @@ export const RATE_LIMITS: Record<RateLimitScope, RateLimitRule> = {
   access_request_ip: { max: 3, windowSeconds: HOUR, lockoutSeconds: null },
   webhook_id: { max: 1, windowSeconds: 24 * HOUR, lockoutSeconds: 24 * HOUR },
   user_mutation: { max: 60, windowSeconds: MIN, lockoutSeconds: MIN },
+  // 002 (contracts/route-handlers.md): seller turns and evaluation-status polling, per user.
+  practice_turn: { max: 20, windowSeconds: MIN, lockoutSeconds: MIN },
+  practice_status: { max: 60, windowSeconds: MIN, lockoutSeconds: MIN },
 };
 
 export function toInterval(seconds: number): string {
