@@ -47,8 +47,9 @@ identificado en el documento maestro.
 - Los webhooks DEBEN validar firma y prevenir replay.
 - NUNCA se registran PII, contenido de conversaciones ni contenido de documentos en logs de
   observabilidad (Sentry, Vercel, consola); solo ids y metadatos técnicos.
-- Mientras se use la capa gratuita de Gemini, solo se procesan datos ficticios o con
-  consentimiento explícito. Está PROHIBIDO cargar datos reales de clientes finales.
+- Mientras se use la capa gratuita de cualquier proveedor de IA (Gemini, Groq u otro), solo se
+  procesan datos ficticios o con consentimiento explícito. Está PROHIBIDO cargar datos reales de
+  clientes finales.
 - Retención, exportación (AC-11) y eliminación de datos se rigen por una política escrita;
   soft-delete donde proceda, y la cancelación de un plan NUNCA provoca pérdida accidental de
   datos (AC-10).
@@ -162,8 +163,10 @@ requiere una enmienda o una justificación aprobada en el "Constitution Check" d
   iconos; Motion para animaciones; `next/font` para tipografías.
 - **Datos**: Supabase (Postgres, RLS, pgvector, Auth con invitaciones, Storage) vía
   `@supabase/ssr`. Entornos aislados: local (`supabase start`), staging y producción.
-- **IA**: Vercel AI SDK con proveedor Google Gemini (capa gratuita), intercambiable por
-  adaptador.
+- **IA**: Vercel AI SDK con Google Gemini y Groq (capas gratuitas durante el piloto), en una
+  cadena por tarea con failover ante 429/5xx, configurada por variable de entorno e
+  intercambiable por adaptador. Cada modelo de la cadena DEBE pasar el dataset dorado de su
+  tarea antes de usarse.
 - **Correo transaccional**: Resend como SMTP de Supabase Auth.
 - **Despliegue**: Vercel (preview por PR, producción desde `main`). SiteGround solo para
   dominio, DNS y correo.
@@ -175,8 +178,9 @@ requiere una enmienda o una justificación aprobada en el "Constitution Check" d
 
 - Spec-Driven Development con Spec Kit por etapas: `specify` → `clarify` → `plan` → `tasks` →
   `analyze` → `implement`. No se implementa sin spec y plan aprobados.
-- Una rama por feature. Cada PR incluye preview de Vercel, checklist de accesibilidad y
-  evidencia de pruebas (resultados de CI y, en cambios de UI, capturas móvil y escritorio).
+- Una rama por feature. Cada PR incluye checklist de accesibilidad y evidencia de pruebas
+  (resultados de CI, Lighthouse y, en cambios de UI, capturas móvil y escritorio). No hay preview
+  de Vercel: existe un único entorno de producción y una preview no tendría base de datos.
 - `main` está siempre desplegable; los merges solo ocurren con CI en verde.
 - El plan de cada feature incluye un "Constitution Check" que recorre los principios I–VII y
   justifica explícitamente cualquier desviación, con su alternativa descartada.
@@ -197,4 +201,15 @@ requiere una enmienda o una justificación aprobada en el "Constitution Check" d
   violación de un principio NO NEGOCIABLE (I, II) bloquea el merge sin excepción; el resto solo
   admite desviaciones justificadas en el "Constitution Check".
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-23 | **Last Amended**: 2026-11-23
+### Historial de enmiendas
+
+- **1.1.0 (2026-11-25)**:
+  - **Proveedores de IA:** se añade Groq junto a Gemini, con una cadena de failover por tarea.
+    - Justificación: la capa gratuita de Gemini permite 20 solicitudes por día y por modelo, y
+      devuelve 503 frecuentes (002 research.md §R16). El piloto se mantiene en capas gratuitas.
+    - Migración: 002 configura las cadenas en `AI_MODEL_*`.
+  - **Datos ficticios:** la regla se amplía a la capa gratuita de cualquier proveedor.
+  - **Previews:** se elimina la exigencia de preview de Vercel por PR, en línea con la decisión
+    de un único entorno (001 research.md §R22). Lighthouse en CI y las capturas la sustituyen.
+
+**Version**: 1.1.0 | **Ratified**: 2026-11-23 | **Last Amended**: 2026-11-25

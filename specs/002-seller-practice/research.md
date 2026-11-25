@@ -480,3 +480,47 @@ código no cambia: solo la clave.
 
 **Alternativas consideradas**: cachear respuestas (no aplica a conversaciones); modelo local (fuera
 del stack y del presupuesto de infraestructura).
+
+### R16 (bis). Piloto solo en capas gratuitas: cadena Gemini + Groq (2026-11-25)
+
+**Decisión**: el piloto se mantiene en capas gratuitas (constitución v1.1.0).
+
+**Diseño**:
+
+- Cada tarea tiene una cadena `proveedor:modelo` (`AI_MODEL_*`, `src/lib/ai/model-chain.ts`).
+- El intento n usa el modelo ((n − 1) mod largo).
+- Cambiar de modelo no espera; reintentar el mismo modelo usa backoff y respeta `retry-after`.
+- Groq no hace streaming con salida estructurada: sus turnos del comprador llegan completos.
+- El evaluador usa en Groq el esquema estricto (decodificación restringida). Sin él, `gpt-oss-120b` ignoraba los `enum`.
+
+**Límites medidos** (cabeceras `x-ratelimit-*` y respuestas 429):
+
+| Modelo | Por minuto | Por día | Capacidad aproximada |
+| --- | --- | --- | --- |
+| Groq `openai/gpt-oss-120b` | 30 solicitudes, 8 000 tokens | 1 000 solicitudes, 200 000 tokens | ≈ 1 evaluación por minuto y ≈ 25 al día (≈ 7 000–9 000 tokens cada una) |
+| Groq `qwen/qwen3.8-27b` | — | — | Rechaza la evaluación: excede los tokens de salida por minuto con `maxOutputTokens` 16 384 |
+| Gemini `3.6-flash` | — | 20 solicitudes | — |
+| Gemini `3.8-flash` | — | 20 solicitudes | Sin ninguna respuesta útil: solo 503 de alta demanda |
+
+**Dataset dorado del evaluador en `gpt-oss-120b`** (T131, con pausas de 65 s entre casos):
+
+| Prompt | Casos que pasan | Qué se observó |
+| --- | --- | --- |
+| `evaluator@1.0.0` | 2/11 | Puntúa bajo y confunde "no evaluable" |
+| Ronda 1: `1.1.0` con anclas en % y sin modo estricto | 1/11 | Siete salidas inválidas, p. ej. `stage: "diagnosis"` |
+| Ronda 2: `1.1.0` con modo estricto | 1/11 | Desaparecen los errores de formato; persiste la confusión entre "no evaluable" y "puntaje bajo" |
+| Ronda 3: `1.1.0` con la regla de "momentos de la conversación" | 2/5 evaluados | Ver detalle abajo |
+
+Detalle de la ronda 3:
+
+- Fallos restantes en los casos evaluados:
+  - 02: bandera `undue_pressure`, discutible ("Separa hoy" tras ignorar la objeción).
+  - 04: dos criterios.
+  - 05: tres criterios cerca del rango.
+- Los otros 6 casos no se evaluaron: se agotaron los 200 000 tokens diarios.
+
+**Pendiente**:
+
+- Ronda 4 completa cuando se recupere la cuota.
+- Dataset dorado con `gemini-3.6-flash` y el prompt `1.1.0`: con su cuota diaria de 20 solicitudes alcanzan los 11 casos.
+- Validar el comprador en Groq.

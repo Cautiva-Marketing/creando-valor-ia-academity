@@ -49,9 +49,9 @@ Plantilla comentada en [`.env.example`](.env.example). Resumen:
 | `RATE_LIMIT_PEPPER`                                                | servidor     | HMAC de claves de rate limit y marcas de tiempo firmadas          |
 | `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`  | servidor     | Errores y source maps                                             |
 | `E2E_EMAIL_FAIL_DOMAIN`                                            | solo pruebas | Fuerza fallos de envío; `src/lib/env.ts` la rechaza en producción |
-| `AI_PROVIDER`                                                      | servidor     | `google` (Gemini) o `fake` (proveedor determinista de pruebas)    |
-| `GOOGLE_GENERATIVE_AI_API_KEY`                                     | servidor     | Clave de Gemini (capa gratuita: solo datos ficticios)             |
-| `AI_MODEL_BUYER_SETUP`, `AI_MODEL_BUYER`, `AI_MODEL_EVALUATOR`     | servidor     | Modelo por tarea (ficha del comprador, turnos, evaluación)        |
+| `AI_PROVIDER`                                                      | servidor     | `google` (proveedores reales) o `fake` (determinista, pruebas)    |
+| `GOOGLE_GENERATIVE_AI_API_KEY`, `GROQ_API_KEY`                     | servidor     | Claves de Gemini y Groq (capas gratuitas: solo datos ficticios)   |
+| `AI_MODEL_BUYER_SETUP`, `AI_MODEL_BUYER`, `AI_MODEL_EVALUATOR`     | servidor     | Cadena `proveedor:modelo` por tarea, con failover                 |
 | `PRACTICE_DISPATCH_SECRET`                                         | servidor     | Bearer del despachador interno de evaluaciones (≥ 32 bytes)       |
 
 Las variables de servidor nunca llevan prefijo `NEXT_PUBLIC_`; `pnpm check:bundle-secrets` verifica
@@ -95,18 +95,22 @@ Regenerar tipos tras una migración:
   (Bearer `PRACTICE_DISPATCH_SECRET`). URL y secreto viven solo en Supabase Vault; localmente los
   carga `supabase/seed.sql` y en producción `scripts/ops/set-practice-dispatch.ts` (ver
   [`scripts/ops/README.md`](scripts/ops/README.md)).
-- **Capa gratuita de Gemini: insuficiente** (research.md §R16, medido el 2026-11-25).
-  - Límites por proyecto, no por usuario: 20 solicitudes al día por modelo en `gemini-3.6-flash`, y
-    503 frecuentes por alta demanda en `gemini-3.5-flash-lite`.
-  - Una práctica usa entre 3 y 24 llamadas, así que no alcanza ni para el piloto. Además, Google
-    usa los datos de la capa gratuita.
-  - **Activar la facturación antes del piloto**, con un tope de presupuesto en Google Cloud. Cuesta
-    ≈ US$ 0,09 por práctica a precio de lista y solo cambia la clave, no el código.
-- **Modelos** (`AI_MODEL_*`): la familia 2.5 está cerrada a proyectos nuevos.
-  - Comprador: `gemini-3.5-flash-lite`, con `thinkingLevel: minimal`.
-  - Ficha y evaluador: `gemini-3.6-flash`.
-  - Si cambias el modelo del comprador, verifica que acepte `minimal` (`gemini-3.8-flash` no lo
-    acepta).
+- **Piloto en capas gratuitas, con failover** (research.md §R16, constitución v1.1.0).
+  - Cada tarea tiene una cadena `AI_MODEL_*` de entradas `proveedor:modelo`, que se prueban en
+    orden ante 429/5xx, sin espera al cambiar de modelo.
+  - Las entradas sin clave se omiten; cada tarea necesita al menos una utilizable.
+  - Por defecto:
+    - comprador: `google:gemini-3.5-flash-lite` y, de respaldo, `groq:openai/gpt-oss-120b`;
+    - ficha y evaluación: Groq primero y Gemini después.
+  - Límites gratuitos medidos: Gemini permite 20 solicitudes al día por modelo en `3.6-flash` y
+    da 503 frecuentes; Groq, unas 1.000 al día por modelo.
+  - Groq no hace streaming con salida estructurada: sus turnos llegan completos, en ~1 s.
+  - **Solo datos ficticios** en cualquier capa gratuita.
+  - Pasar a pago antes de abrir el acceso cuesta ≈ US$ 0,09 por práctica con Gemini, o menos con
+    Groq. Solo cambian claves y variables, no el código.
+- **Modelos**: la familia 2.5 de Gemini está cerrada a proyectos nuevos. Gemini 3 usa
+  `thinkingLevel` (el comprador usa `minimal`, que `gemini-3.8-flash` no acepta) y Groq usa
+  `reasoningEffort`.
 
 ### Medición de los criterios de éxito (quickstart.md)
 

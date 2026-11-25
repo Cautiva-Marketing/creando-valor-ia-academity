@@ -74,7 +74,7 @@ la sesión. Los textos de entrada no confiables van delimitados y serializados (
 
 ## Evaluador
 
-- **Tarea**: `evaluator` · **Prompt**: `evaluator@1.0.0` · **Llamada**: `generateText` +
+- **Tarea**: `evaluator` · **Prompt**: `evaluator@1.1.0` · **Llamada**: `generateText` +
   `Output.object`, temperatura ~0,2, timeout 50 s por intento, ≤ 3 intentos por ronda.
 - **Prompt de sistema**: analizar exclusivamente la transcripción, la ficha del escenario y la rúbrica
   versionada; puntuar cada criterio sin exceder su máximo, con enteros; citar solo ids `mN` de

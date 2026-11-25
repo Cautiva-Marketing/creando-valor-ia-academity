@@ -320,7 +320,7 @@ respuesta** (retomable con "Reintentar").
 | session_id | uuid → practice_sessions | NOT NULL, UNIQUE (una evaluación válida como máximo) |
 | rubric_id | uuid → rubrics | NOT NULL |
 | rubric_version | text | NOT NULL (copia, `1.0`) |
-| prompt_version | text | NOT NULL (`evaluator@1.0.0`) |
+| prompt_version | text | NOT NULL (`evaluator@1.1.0`) |
 | model | text | NOT NULL |
 | total_score | smallint | NULL si ningún criterio evaluable; 0–100 (recalculado en SQL, FR-041) |
 | level | score_level | NULL ⇔ `total_score` NULL (FR-042) |
