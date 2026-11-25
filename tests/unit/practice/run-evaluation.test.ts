@@ -33,7 +33,7 @@ const ok = (o: EvaluationOutput = output()): EvaluatorResult => ({
   ok: true,
   output: o,
   modelId: 'gemini-test',
-  promptVersion: 'evaluator@1.0.0',
+  promptVersion: 'evaluator@1.1.0',
 });
 
 interface DbScript {
@@ -94,7 +94,7 @@ describe('runEvaluation', () => {
     const payload = calls.at(-1)!.args.p_payload as Record<string, unknown>;
     expect(payload).toMatchObject({
       rubric_id: '00000000-0000-4000-8000-0000000000a1',
-      prompt_version: 'evaluator@1.0.0',
+      prompt_version: 'evaluator@1.1.0',
       model: 'gemini-test',
       total_score: 86,
     });

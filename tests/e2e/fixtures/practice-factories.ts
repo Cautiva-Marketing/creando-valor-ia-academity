@@ -406,7 +406,7 @@ export async function createEvaluatedSession(
         session_id: session.id,
         rubric_id: SEED_PRACTICE.rubricId,
         rubric_version: '1.0',
-        prompt_version: 'evaluator@1.0.0',
+        prompt_version: 'evaluator@1.1.0',
         model: 'fake-evaluator',
         total_score: total,
         level,

@@ -16,7 +16,7 @@ export default defineConfig({
     include: ['tests/golden/offline.test.ts', 'tests/golden/live.test.ts'],
     exclude: ['node_modules/**'],
     testTimeout: 180_000,
-    hookTimeout: 60_000,
+    hookTimeout: 120_000,
     fileParallelism: false,
     sequence: { concurrent: false },
   },

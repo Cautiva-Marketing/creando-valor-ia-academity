@@ -119,7 +119,7 @@ describe('runEvaluator', () => {
     const { result, usage, mock } = await run([{ text: validJson() }]);
     expect(result).toMatchObject({
       ok: true,
-      promptVersion: 'evaluator@1.0.0',
+      promptVersion: 'evaluator@1.1.0',
       modelId: 'mock-evaluator',
     });
     if (result.ok) expect(evaluationOutputSchema.safeParse(result.output).success).toBe(true);
@@ -183,5 +183,26 @@ describe('runEvaluator', () => {
     expect(result.output.criteria).toHaveLength(7);
     const cited = result.output.criteria.flatMap((c) => c.evidence_message_ids);
     expect(cited.every((id) => id === 'm2' || id === 'm4')).toBe(true);
+  });
+
+  it('fails over to the next model of the chain on 503 and reports the model that answered', async () => {
+    const down = model([{ status: 503 }]);
+    const up = model([{ text: validJson() }]);
+    const usage: AiUsageInput[] = [];
+    const result = await runEvaluator(evaluationClaim(), {
+      resolveModel: (attempt) =>
+        attempt === 1
+          ? { model: down.mock, modelId: 'openai/gpt-oss-120b' }
+          : { model: up.mock, modelId: 'gemini-3.6-flash' },
+      recordUsage: async (row) => {
+        usage.push(row);
+      },
+      retry: { delaysMs: [60_000, 60_000], random: () => 0 },
+    });
+    expect(result).toMatchObject({ ok: true, modelId: 'gemini-3.6-flash' });
+    expect(usage.map((r) => [r.outcome, r.model])).toEqual([
+      ['retry', 'openai/gpt-oss-120b'],
+      ['success', 'gemini-3.6-flash'],
+    ]);
   });
 });

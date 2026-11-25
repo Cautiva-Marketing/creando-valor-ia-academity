@@ -74,7 +74,7 @@ export type BuyerTurnOutput = z.infer<typeof buyerTurnOutputSchema>;
 export type BuyerTurnMeta = BuyerTurnOutput['meta'];
 
 /**
- * Evaluation (evaluator@1.0.0; contracts/ai-agents.md → "Evaluador"; lengths of data-model.md).
+ * Evaluation (evaluator@1.1.0; contracts/ai-agents.md → "Evaluador"; lengths of data-model.md).
  * Evidence comes as message ids "mN"; cross rules (rubric, seller ids, ranges) live in
  * validateEvaluation and save_practice_evaluation. `total_score` is ignored (FR-041).
  */
